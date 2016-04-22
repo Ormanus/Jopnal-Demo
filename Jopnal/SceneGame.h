@@ -54,8 +54,7 @@ private:
 class SceneGame : public jop::Scene
 {
 private:
-    std::vector<jop::WeakReference<jop::Object>> m_rings;
-    jop::WeakReference<jop::Object> m_camera;
+    jop::WeakReference<jop::Object> m_world;
     jop::WeakReference<jop::Object> m_object;
     jop::WeakReference<jop::Object> m_text;
     float m_time;
@@ -64,7 +63,7 @@ public:
     SceneGame()
         : jop::Scene("MyScene")
     {
-        getRenderer().setMask(3);
+        //getRenderer().setMask(3);
 
         jop::Window* w = jop::Engine::getSubsystem<jop::Window>();
         jop::Engine::getSubsystem<jop::Window>()->setEventHandler<GameEventHandler>(*w);
@@ -72,21 +71,23 @@ public:
         w->setClearColor(jop::Color::Black);
 
         //camera
-        m_camera = createChild("cam");
-        m_camera->setPosition(0.0f, 0.0f, 0.0f);
-        auto cam = m_camera->createChild("view");
+        auto camObj = createChild("cam");
+        camObj->setPosition(0.0f, 0.0f, 0.0f);
+        auto cam = camObj->createChild("view");
         //cam->setPosition(0.0f, 0.0f, 40.0f);
         cam->createComponent<jop::Camera>(getRenderer(), jop::Camera::Projection::Perspective).setFieldOfView(PI / 2.0f);
 
         //terrain
-        generateLevel(&this->getAsObject());
+        /*m_world = createChild("world");
+        auto& world = m_world->createComponent<jop::World>(getRenderer());
+        generateLevel(&this->getAsObject());*/
 
         //text
         m_text = createChild("Text");
         m_text->setPosition(-150.0f, -250.0f, 0.0f);
         m_text->setScale(800.0f, 800.0f, 1.0f);
         jop::Text& text = m_text->createComponent<jop::Text>(getRenderer());
-        text.setFont(jop::ResourceManager::getResource<jop::Font, std::string, int>(std::string("novem___.ttf"), 64));
+        text.setFont(jop::ResourceManager::getResource<jop::Font, std::string, int>(std::string("fonts/novem___.ttf"), 64));
         text.setRenderGroup(1);
         text.setString("Loading...  (not really)");
         text.setColor(jop::Color(1.0f, 0.8f, 0.3f, 1.0f));
@@ -124,19 +125,19 @@ public:
 
         float speed = 100.f;
 
-        if (eh->keyDown(jop::Keyboard::Right))
+        if (eh->keyDown(jop::Keyboard::D))
         {
             cam->move(cam->getLocalRight() * speed * dt);
         }
-        if (eh->keyDown(jop::Keyboard::Left))
+        if (eh->keyDown(jop::Keyboard::A))
         {
             cam->move(-cam->getLocalRight() * speed * dt);
         }
-        if (eh->keyDown(jop::Keyboard::Up))
+        if (eh->keyDown(jop::Keyboard::W))
         {
             cam->move(cam->getLocalFront() * speed * dt);
         }
-        if (eh->keyDown(jop::Keyboard::Down))
+        if (eh->keyDown(jop::Keyboard::S))
         {
             cam->move(-cam->getLocalFront() * speed * dt);
         }
@@ -173,37 +174,43 @@ private:
 
         //jop::Randomizer r;
 
-        const int w = 64;
-        const int h = 64;
+        const int w = 32;
+        const int h = 32;
 
         for (int i = 0; i < w; i++)
         {
             for (int j = 0; j < h; j++)
             {
+                //meshify
                 jop::Vertex v;
                 float dx = i - w / 2.0f;
                 float dy = j - h / 2.0f;
 
-                v.position.y = sin(static_cast<float>(i) / 5.f)*sin(static_cast<float>(j) / 5.f)*8.0f;
+                v.position.y = sin(static_cast<float>(i) / 15.f)*sin(static_cast<float>(j) / 15.f)*2.0f;
 
-                v.position.x = i * 2.0f;
-                v.position.z = j * 2.0f;
+                v.position.x = i;
+                v.position.z = j;
                 v.texCoords.x = 0.0f;
                 v.texCoords.y = 0.0f;
                 vertices.push_back(v);
-                v.position.z = (j + 1.0f) * 2.0f;
+                v.position.z = (j + 1.0f);
                 v.texCoords.y = 1.0f;
                 vertices.push_back(v);
-                v.position.x = (i + 1.0f) * 2.0f;
+                v.position.x = (i + 1.0f);
                 v.texCoords.x = 1.0f;
                 vertices.push_back(v);
                 vertices.push_back(v);
-                v.position.z = j * 2.0f;
+                v.position.z = j;
                 v.texCoords.y = 0.0f;
                 vertices.push_back(v);
-                v.position.x = i * 2.0f;
+                v.position.x = i;
                 v.texCoords.x = 0.0f;
                 vertices.push_back(v);
+
+                //colliders
+                auto tile = terrain->createChild("tile_"+std::to_string(i)+"_"+std::to_string(j));
+                tile->createComponent<jop::RigidBody>(jop::ResourceManager::getNamedResource())
+                tile->setPosition(i, v.position.y, j);
             }
         }
 
