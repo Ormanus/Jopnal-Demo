@@ -106,7 +106,7 @@ public:
         m_text->setPosition(-150.0f, -250.0f, 0.0f);
         m_text->setScale(800.0f, 800.0f, 1.0f);
         jop::Text& text = m_text->createComponent<jop::Text>(getRenderer());
-        text.setFont(jop::ResourceManager::getResource<jop::Font, std::string, int>(std::string("novem___.ttf"), 64));
+        text.setFont(jop::ResourceManager::getResource<jop::Font, std::string, int>(std::string("fonts/novem___.ttf"), 64));
         text.setRenderGroup(1);
         text.setString("Loading...  (not really)");
         text.setColor(jop::Color(1.0f, 0.8f, 0.3f, 1.0f));
@@ -115,11 +115,12 @@ public:
         auto& material = jop::ResourceManager::getEmptyResource<jop::Material>("cubeMaterial", jop::Material::Attribute::DefaultLighting);
         material.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Pixel.png", true));
 
+        //bullet material
         auto& material2 = jop::ResourceManager::getEmptyResource<jop::Material>("bulletMaterial", jop::Material::Attribute::DefaultLighting);
         material2.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Bullet.png", true));
 
-        //box
-        m_object = createChild("globe");
+        //sword
+        m_object = createChild("sword");
         m_object->createComponent<jop::ModelLoader>().load("SwordMinecraft.obj");
         m_object->setScale(0.1f);
 

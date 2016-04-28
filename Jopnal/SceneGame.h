@@ -5,7 +5,8 @@
 
 #include <Jopnal/Jopnal.hpp>
 #include <random>
-#include "Missile.h"
+//#include "Missile.h"
+#include "Tower.h"
 
 class GameEventHandler
     : public jop::WindowEventHandler
@@ -43,6 +44,37 @@ public:
             cam.setRotation(glm::radians(-my), glm::radians(-mx), 0.f);
         }
     }
+
+    void mouseButtonReleased(const int button, const int)override
+    {
+        if (button == jop::Mouse::Button::Left)
+        {
+            if (!jop::Engine::exiting() && jop::Engine::hasCurrentScene())
+            {
+                if (jop::Engine::getCurrentScene().findChildrenWithTag("sword", false).empty())
+                {
+                    JOP_DEBUG_INFO("404 Sword not found.");
+                    return;
+                }
+
+                auto& sword = *jop::Engine::getCurrentScene().findChildrenWithTag("sword", false)[0];
+                glm::vec3 pos = sword.getLocalPosition();
+
+                //create tower
+                auto tower = jop::Engine::getCurrentScene().createChild("tower");
+                tower->setPosition(pos + glm::vec3(0.f, 1.f, 0.f));
+                tower->createComponent<Tower>();
+                auto& drawable = tower->createComponent<jop::GenericDrawable>(jop::Engine::getCurrentScene().getRenderer());
+                drawable.setModel(jop::Model(jop::Mesh::getDefault(), jop::ResourceManager::getExistingResource<jop::Material>("cubeMaterial")));
+
+                JOP_DEBUG_INFO("Tower Created.");
+                //tower->createComponent<jop::ModelLoader>().load("SwordMinecraft.obj");
+                //tower->setScale(0.1f);
+                //tower->setRotation(0.0f, PI / 4.f, PI / 2.0f);
+            }
+        }
+    }
+
     void closed()override
     {
         jop::Engine::exit();
@@ -58,7 +90,7 @@ private:
     jop::WeakReference<jop::Object> m_object;
     jop::WeakReference<jop::Object> m_text;
     float m_time;
-
+    float m_enemyTimer;
 public:
     SceneGame()
         : jop::Scene("MyScene")
@@ -70,6 +102,8 @@ public:
 
         w->setClearColor(jop::Color::Black);
 
+        //getWorld().setDebugMode(true);
+
         //camera
         auto camObj = createChild("cam");
         camObj->setPosition(0.0f, 0.0f, 0.0f);
@@ -78,19 +112,9 @@ public:
         cam->createComponent<jop::Camera>(getRenderer(), jop::Camera::Projection::Perspective).setFieldOfView(PI / 2.0f);
 
         //terrain
-        /*m_world = createChild("world");
-        auto& world = m_world->createComponent<jop::World>(getRenderer());
-        generateLevel(&this->getAsObject());*/
-
-        //text
-        m_text = createChild("Text");
-        m_text->setPosition(-150.0f, -250.0f, 0.0f);
-        m_text->setScale(800.0f, 800.0f, 1.0f);
-        jop::Text& text = m_text->createComponent<jop::Text>(getRenderer());
-        text.setFont(jop::ResourceManager::getResource<jop::Font, std::string, int>(std::string("fonts/novem___.ttf"), 64));
-        text.setRenderGroup(1);
-        text.setString("Loading...  (not really)");
-        text.setColor(jop::Color(1.0f, 0.8f, 0.3f, 1.0f));
+        ///*m_world = createChild("world");
+        //auto& world = m_world->createComponent<jop::World>(getRenderer());
+        generateLevel(&this->getAsObject());
 
         //cube material
         auto& material = jop::ResourceManager::getEmptyResource<jop::Material>("cubeMaterial", jop::Material::Attribute::DefaultLighting);
@@ -100,10 +124,12 @@ public:
         auto& material2 = jop::ResourceManager::getEmptyResource<jop::Material>("bulletMaterial", jop::Material::Attribute::DefaultLighting);
         material2.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Bullet.png", true));
 
-        //middle object
-        m_object = createChild("globe");
+        //sword
+        m_object = createChild("sword");
+        m_object->addTag("sword");
         m_object->createComponent<jop::ModelLoader>().load("SwordMinecraft.obj");
         m_object->setScale(0.1f);
+        m_object->setRotation(0.0f, PI / 4.f, PI / 2.0f);
 
         //skybox
         auto& map = jop::ResourceManager::getResource<jop::Cubemap>("Cubemap/right.png", "Cubemap/left.png", "Cubemap/top.png", "Cubemap/bottom.png", "Cubemap/front.png", "Cubemap/back.png", false);
@@ -111,7 +137,7 @@ public:
 
         //light
         auto light = createChild("light");
-        light->createComponent<jop::LightSource>(getRenderer(), jop::LightSource::Type::Directional).setIntensity(jop::Color(1.0f, 0.5f, 0.0f)).setAttenuation(50);
+        light->createComponent<jop::LightSource>(getRenderer(), jop::LightSource::Type::Directional).setIntensity(jop::Color(1.0f, 0.9f, 0.0f)).setAttenuation(50);
         light->setRotation(-0.1f, 0.0f, 0.f);
     }
 
@@ -123,7 +149,7 @@ public:
 
         auto cam = findChild("cam");
 
-        float speed = 100.f;
+        float speed = 10.f;
 
         if (eh->keyDown(jop::Keyboard::D))
         {
@@ -143,39 +169,51 @@ public:
         }
 
         m_time += dt;
-    }
-private:
-    void createRing(jop::Object* o, float radius)
-    {
-        const int numCubes = 32;
-        const float step = PI / (static_cast<float>(numCubes) / 2.0f);
-        const float d = step * radius;
-        for (int i = 0; i < 32; i++)
+
+        auto collider = findChild("terrain")->getComponent<jop::RigidBody>();
+
+        if (m_time > 0.01f)
         {
-            auto c = o->createChild("cube");
-            c->setPosition(cos(i * step) * radius, sin(i * step) * radius, 0.0f);
-            c->setRotation(0.0f, 0.0f, i * step);
-            c->setScale(1.0f, d, 1.0f);
+            m_time -= 0.01f;
+            jop::RayInfo ray = getWorld().checkRayClosest(cam->getGlobalPosition(), cam->getGlobalFront() * 1000.f);
+            //collider->checkRay(cam->getGlobalPosition(), getAsObject().getGlobalFront());
+            if (ray.point != glm::vec3(0))
+            {
+                m_object->setPosition(ray.point);
+            }
+        }
 
-            c->createComponent<jop::GenericDrawable>(getRenderer());
-            auto drawable = c->getComponent<jop::GenericDrawable>();
-            drawable->setModel(jop::Model(jop::Mesh::getDefault(), jop::ResourceManager::getExistingResource<jop::Material>("cubeMaterial")));
+        m_enemyTimer += dt;
+        if (m_enemyTimer > 1.0f)
+        {
+            m_enemyTimer -= 1.0f;
 
-            c->addTag("target");
+            float t = jop::Engine::getTotalTime();
+
+            auto o = createChild("TargetObject");
+            o->setPosition(cos(t) * 10.f + 16.f, sin(t * 5.0f) * 5.f + 10.f, sin(t) * 10.f + 16.f);
+            o->createComponent<jop::GenericDrawable>(getRenderer());
+            o->addTag("target");
+            auto drawable = o->getComponent<jop::GenericDrawable>();
+            drawable->setModel(jop::Model(jop::Mesh::getDefault(), jop::ResourceManager::getExistingResource<jop::Material>("bulletMaterial")));
         }
     }
+private:
     void generateLevel(jop::Object* o)
     {
+        const float scale = 10.0f;
+
         auto terrain = o->createChild("terrain");
         auto& material1 = jop::ResourceManager::getEmptyResource<jop::Material>("terrainMaterial", jop::Material::Attribute::DefaultLighting);
         material1.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Bullet.png", true));
 
         std::vector<jop::Vertex> vertices;
 
-        //jop::Randomizer r;
-
         const int w = 32;
         const int h = 32;
+
+        std::vector<glm::vec3> points;
+        //std::vector<unsigned int> indices;
 
         for (int i = 0; i < w; i++)
         {
@@ -186,39 +224,68 @@ private:
                 float dx = i - w / 2.0f;
                 float dy = j - h / 2.0f;
 
-                v.position.y = sin(static_cast<float>(i) / 15.f)*sin(static_cast<float>(j) / 15.f)*2.0f;
-
-                v.position.x = i;
-                v.position.z = j;
+                v.position.x = i * scale;
+                v.position.z = j * scale;
+                v.position.y = terrainY(v.position.x, v.position.z);
                 v.texCoords.x = 0.0f;
                 v.texCoords.y = 0.0f;
                 vertices.push_back(v);
-                v.position.z = (j + 1.0f);
+                points.push_back(v.position);
+                //indices.push_back(i + j*w + 0);
+
+
+                v.position.z = (j + 1.0f) * scale;
+                v.position.y = terrainY(v.position.x, v.position.z);
                 v.texCoords.y = 1.0f;
                 vertices.push_back(v);
-                v.position.x = (i + 1.0f);
+                points.push_back(v.position);
+                //indices.push_back(i + j*w + 1);
+
+                v.position.x = (i + 1.0f) * scale;
+                v.position.y = terrainY(v.position.x, v.position.z);
                 v.texCoords.x = 1.0f;
                 vertices.push_back(v);
                 vertices.push_back(v);
-                v.position.z = j;
+                points.push_back(v.position);
+                points.push_back(v.position);
+                //indices.push_back(i + j*w + 2);
+                //indices.push_back(i + j*w + 2);
+
+                v.position.z = j * scale;
+                v.position.y = terrainY(v.position.x, v.position.z);
                 v.texCoords.y = 0.0f;
                 vertices.push_back(v);
-                v.position.x = i;
+                points.push_back(v.position);
+                //indices.push_back(i + j*w + 3);
+
+                v.position.x = i * scale;
+                v.position.y = terrainY(v.position.x, v.position.z);
                 v.texCoords.x = 0.0f;
                 vertices.push_back(v);
+                points.push_back(v.position);
+                //indices.push_back(i + j*w + 0);
 
                 //colliders
-                auto tile = terrain->createChild("tile_"+std::to_string(i)+"_"+std::to_string(j));
-                tile->createComponent<jop::RigidBody>(jop::ResourceManager::getNamedResource())
-                tile->setPosition(i, v.position.y, j);
+
+                //auto tile = terrain->createChild("tile_"+std::to_string(i)+"_"+std::to_string(j));
+                //tile->createComponent<jop::RigidBody>(getWorld(), jop::RigidBody::ConstructInfo(jop::ResourceManager::getNamedResource<jop::RectangleShape>("rectangle", 1.0f), jop::RigidBody::Type::StaticSensor));
+                //tile->setPosition(i, v.position.y, j);
             }
         }
+        terrain->createComponent<jop::RigidBody>(getWorld(), jop::RigidBody::ConstructInfo(jop::ResourceManager::getNamedResource<jop::TerrainShape>("mesh", points)));
 
-        terrain->setPosition(-w*2.0f, -2.0f, -h*2.0f).setScale(2.0f, 2.0f, 2.0f);;
+        //terrain->createComponent<jop::RigidBody>(getWorld(), jop::RigidBody::ConstructInfo(jop::ResourceManager::getNamedResource<jop::RectangleShape>("rectangle", w), jop::RigidBody::Type::StaticSensor));
+
+        //terrain->setPosition(-w*2.0f, -2.0f, -h*2.0f).setScale(2.0f, 2.0f, 2.0f);
 
         auto& mesh = jop::ResourceManager::getNamedResource<jop::Mesh>("mesh", vertices, std::vector<unsigned int>());
         auto& drawable1 = terrain->createComponent<jop::GenericDrawable>(getRenderer());
         drawable1.setModel(jop::Model(mesh, material1));
+    }
+
+    float terrainY(float x, float z)
+    {
+        return sin(x * 5.f)*sin(z * 5.f)*5.0f;
     }
 };
 
