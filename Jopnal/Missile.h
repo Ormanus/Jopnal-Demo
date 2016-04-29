@@ -12,6 +12,9 @@ public:
         m_timer(10.0f)
     {
         objRef.setScale(0.75f, 0.75f, 2.0f);
+        objRef.setRotation(3.14159f / 2.f, 0.0f, 0.0f);
+        m_speed = 1.f;
+        m_tot_time = 0.0f;
     };
 
     Missile(const Missile& misRef, jop::Object& objRef)
@@ -19,6 +22,9 @@ public:
         m_timer(10.0f)
     {
         objRef.setScale(0.75f, 0.75f, 2.0f);
+        objRef.setRotation(3.14159f / 2.f, 0.0f, 0.0f);
+        m_speed = 1.f;
+        m_tot_time = 0.0f;
     };
 
     JOP_GENERIC_COMPONENT_CLONE(Missile);
@@ -38,36 +44,53 @@ public:
         auto o = getObject();
         if (!m_target.expired())
         {
+
+            m_tot_time += dt;
+
+            glm::vec3 vel = glm::normalize(o->getLocalFront());
+            glm::vec3 delta = m_target->getGlobalPosition() - o->getGlobalPosition();
+            float l = glm::length(delta);
+            delta = glm::normalize(delta);
+
+            glm::vec3 axis = glm::cross(vel, delta);
+
+            //glm::vec3 normal = glm::normalize(glm::cross(axis, vel));
+
+            float cosTheta = glm::dot(vel, delta);
+
+            float s = sqrt((1+cosTheta)*2);
+            float invs = 1.f / s;
+
+            glm::quat dir;
+
+            dir = glm::quat(s * 0.5f, axis * invs);
+
+            //dir = glm::slerp(glm::quat_cast(glm::mat3x3(1.f)), dir, m_tot_time);
             
 
-            glm::vec3 delta = o->getGlobalPosition() - m_target->getGlobalPosition();
-
-            glm::quat dir = glm::quat_cast(glm::lookAt(o->getGlobalPosition(), delta, o->getGlobalFront()));
-
-            float l = glm::length(delta);
-            m_velocity = o->getGlobalUp() * 20.f;//-glm::normalize(delta) * ((l - 10.f)*(l - 16.f) + 15.f) * dt;
-
-            //m_velocity = -(dir) * o->getGlobalUp() * 10.f;// *dt;
-
-            o->setRotation(dir);
-
-            if (glm::length(m_velocity) > 15.f)
+            if (abs(acos(cosTheta)) < 0.1)
             {
-                //m_velocity = glm::normalize(m_velocity) * 15.f;
+                m_speed += dt;
             }
+            else
+            {
+                dir = glm::slerp(glm::quat_cast(glm::mat3x3(1.f)), dir, 1.f);
+            }
+
+            o->rotate(dir);
+
             if (l < 1.0f)
             {
                 m_target->removeSelf();
                 o->removeSelf();
             }
-            o->setRotation(glm::quat_cast(glm::lookAt(o->getGlobalPosition(), m_velocity, o->getGlobalUp())));
         }
         else
         {
             o->rotate(dt * 2.0f, dt * 2.0f, dt * 2.0f);
             //getObject()->removeSelf();
         }
-        o->move(m_velocity * dt);
+        o->move(o->getGlobalFront() * 20.f * dt * m_speed);
         m_timer -= dt;
         if (m_timer < 0)
         {
@@ -78,6 +101,8 @@ private:
     jop::WeakReference<jop::Object> m_target;
     glm::vec3 m_velocity;
     float m_timer;
+    float m_speed;
+    float m_tot_time;
 };
 
 class Bullet : public jop::Component

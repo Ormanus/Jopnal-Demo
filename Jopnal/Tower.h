@@ -68,21 +68,24 @@ public:
 
     void findTarget()
     {
-        glm::vec3 pos = getObject()->getGlobalPosition();
+        //glm::vec3 pos = getObject()->getGlobalPosition();
 
-        float dist = FLT_MAX;
+        //float dist = FLT_MAX;
 
-        for (auto target : getObject()->getParent()->findChildrenWithTag("target", false))
-        {
-            glm::vec3 delta = pos - target->getGlobalPosition();
-            float d = glm::length(delta);
-            if (d < dist)
-            {
-                m_target = target;
-                JOP_DEBUG_INFO("Target reset.");
-                dist = d;
-            }
-        }
+        //for (auto target : getObject()->getParent()->findChildrenWithTag("target", false))
+        //{
+        //    glm::vec3 delta = pos - target->getGlobalPosition();
+        //    float d = glm::length(delta);
+        //    if (d < dist)
+        //    {
+        //        m_target = target;
+        //        JOP_DEBUG_INFO("Target reset.");
+        //        dist = d;
+        //    }
+        //}
+        std::vector<jop::WeakReference<jop::Object>> targets = getObject()->getParent()->findChildrenWithTag("target", false);
+        if (targets.size() > 0)
+            m_target = targets[rand() % (targets.size())];
     }
 
 private:
