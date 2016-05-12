@@ -66,7 +66,6 @@ public:
             dir = glm::quat(s * 0.5f, axis * invs);
 
             //dir = glm::slerp(glm::quat_cast(glm::mat3x3(1.f)), dir, m_tot_time);
-            
 
             if (abs(acos(cosTheta)) < 0.1)
             {

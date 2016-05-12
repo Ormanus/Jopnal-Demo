@@ -5,6 +5,7 @@
 
 #include <Jopnal/Jopnal.hpp>
 #include "Missile.h"
+#include "HUDComponent.h"
 
 class EventHandler
     : public jop::WindowEventHandler

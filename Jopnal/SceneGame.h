@@ -14,8 +14,9 @@ public:
     GameEventHandler(jop::Window& w, jop::Window& w2)
         :jop::WindowEventHandler(w)
     {
-        w.setMouseMode(jop::Mouse::Mode::Frozen);
-
+        //w.setMouseMode(jop::Mouse::Mode::Frozen);
+		m_mx = 0.f;
+		m_my = 0.f;
     }
     ~GameEventHandler(){}
 
@@ -27,21 +28,40 @@ public:
         {
             closed();
         }
+		else if (key == jop::Keyboard::LShift)
+		{
+			glm::quat q = cam.getLocalRotation();
+			m_mx = atan2(2.0*(q.y*q.z + q.w*q.x), q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z) * 180.f / PI;
+			//m_my = 0.f;
+			//m_firstShift = true;
+			jop::Engine::getSubsystem<jop::Window>()->setMouseMode(jop::Mouse::Mode::Frozen);
+		}
     }
 
     void mouseMoved(const float x, const float y) override
     {
-        if (!jop::Engine::exiting() && jop::Engine::hasCurrentScene())
+		if (!jop::Engine::exiting() && jop::Engine::hasCurrentScene() && keyDown(jop::Keyboard::LShift)/* && !m_firstShift*/)
         {
+			
+
             auto& cam = *jop::Engine::getCurrentScene().findChild("cam");
 
-            static float mx = 0.f;
-            static float my = 0.f;
-            mx += x;
-            my = glm::clamp(my + y, -85.f, 85.f);
+            m_mx += x;
+            m_my = glm::clamp(m_my + y, -85.f, 85.f);
 
-            cam.setRotation(glm::radians(-my), glm::radians(-mx), 0.f);
+            cam.setRotation(glm::radians(-m_my), glm::radians(-m_mx), 0.f);
         }
+		/*else if (m_firstShift)
+		{
+			m_firstShift = false;
+		}*/
+		else
+		{
+			jop::Engine::getSubsystem<jop::Window>()->setMouseMode(jop::Mouse::Mode::Visible);
+			//m_firstShift = false;
+			//m_mx = 0.f;
+			//m_my = 0.f;
+		}
     }
 
     void mouseButtonReleased(const int button, const int)override
@@ -76,7 +96,9 @@ public:
         jop::Engine::exit();
     }
 private:
-
+	float m_mx;
+	float m_my;
+	bool m_firstShift;
 };
 
 class SceneGame : public jop::Scene
@@ -102,7 +124,7 @@ public:
 
         //camera
         auto camObj = createChild("cam");
-        camObj->setPosition(0.0f, 0.0f, 0.0f);
+        camObj->setPosition(0.0f, 30.0f, 0.0f);
         auto cam = camObj->createChild("view");
         //cam->setPosition(0.0f, 0.0f, 40.0f);
         cam->createComponent<jop::Camera>(getRenderer(), jop::Camera::Projection::Perspective).setFieldOfView(PI / 2.0f);
@@ -131,8 +153,8 @@ public:
 
         //light
         auto light = createChild("light");
-        light->createComponent<jop::LightSource>(getRenderer(), jop::LightSource::Type::Directional).setIntensity(jop::Color(1.0f, 0.9f, 0.0f)).setAttenuation(50);
-        light->setRotation(-0.1f, 0.0f, 0.f);
+        light->createComponent<jop::LightSource>(getRenderer(), jop::LightSource::Type::Directional).setIntensity(jop::Color(1.0f, 0.9f, 0.3f)).setAttenuation(50);
+        light->setRotation(-0.3f, 0.0f, 0.f);
     }
 
     void preUpdate(const float dt) override
@@ -140,6 +162,8 @@ public:
         float time = jop::Engine::getTotalTime() / 2.0f;
 
         auto eh = jop::Engine::getSubsystem<jop::Window>()->getEventHandler();
+
+		auto& scene = getAsObject();
 
         auto cam = findChild("cam");
 
@@ -155,11 +179,11 @@ public:
         }
         if (eh->keyDown(jop::Keyboard::W))
         {
-            cam->move(cam->getLocalFront() * speed * dt);
+			cam->move(glm::cross(scene.getGlobalUp(), cam->getLocalRight()) * speed * dt);
         }
         if (eh->keyDown(jop::Keyboard::S))
         {
-            cam->move(-cam->getLocalFront() * speed * dt);
+			cam->move(-glm::cross(scene.getGlobalUp(), cam->getLocalRight()) * speed * dt);
         }
 
         m_time += dt;
