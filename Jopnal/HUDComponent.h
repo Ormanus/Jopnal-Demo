@@ -1,9 +1,7 @@
-//#ifndef HUDCOMPONENT_H
-//#define HUDCOMPONENT_H
+#ifndef HUDCOMPONENT_H
+#define HUDCOMPONENT_H
 
-#pragma once
-
-#include <Jopnal\Jopnal.hpp>
+#include <Jopnal/Jopnal.hpp>
 
 class UIComponent : public jop::Component
 {
@@ -12,6 +10,7 @@ public:
 	UIComponent(jop::Object& objRef, const std::string texturePath)
 		: jop::Component(objRef, "name")
 	{
+        init(texturePath);
 	};
 
 	UIComponent(const UIComponent& misRef, jop::Object& objRef)
@@ -21,14 +20,14 @@ public:
 
 	JOP_GENERIC_COMPONENT_CLONE(UIComponent);
 
-	void init(jop::Renderer* rend, std::string texturePath)
+	void init(std::string texturePath)
 	{
-		auto o = getObject();
-		o->createComponent<jop::GenericDrawable>(rend);
+        auto o = getObject();// ->getScene().findChild("orthoCam");
+		o->createComponent<jop::GenericDrawable>(o->getScene().getRenderer());
 		auto drawable1 = o->getComponent<jop::GenericDrawable>();
 		drawable1->setRenderGroup(1);
 		auto& material1 = jop::ResourceManager::getEmptyResource<jop::Material>(texturePath, jop::Material::Attribute::Default);
-		material1.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>(texturePath));
+		material1.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>(texturePath, true));
 		drawable1->setModel(jop::Model(jop::ResourceManager::getNamedResource<jop::RectangleMesh>("rectangle", 100.0f), material1));
 	}
 };
@@ -40,6 +39,7 @@ public:
 		: UIComponent(objRef, texturePath)
 	{
 		m_hover = false;
+        m_message = nullptr;
 	}
 
 	void setAction(jop::Message* m)
@@ -49,7 +49,7 @@ public:
 
 	void onClick()
 	{
-		if (m_hover)
+		if (m_hover && m_message != nullptr)
 			jop::Engine::sendMessage(*(m_message));
 	}
 
@@ -71,4 +71,4 @@ private:
 	bool m_hover;
 };
 
-//#endif
+#endif

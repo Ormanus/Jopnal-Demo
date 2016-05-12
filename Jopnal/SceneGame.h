@@ -3,9 +3,11 @@
 
 #define PI 3.14159265359
 
-#include <Jopnal/Jopnal.hpp>
+//#include <Jopnal/Jopnal.hpp>
 #include <random>
 #include "Tower.h"
+#include "HUDComponent.h"
+#include "Enemy.h"
 
 class GameEventHandler
     : public jop::WindowEventHandler
@@ -30,20 +32,14 @@ public:
         }
 		else if (key == jop::Keyboard::LShift)
 		{
-			glm::quat q = cam.getLocalRotation();
-			m_mx = atan2(2.0*(q.y*q.z + q.w*q.x), q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z) * 180.f / PI;
-			//m_my = 0.f;
-			//m_firstShift = true;
 			jop::Engine::getSubsystem<jop::Window>()->setMouseMode(jop::Mouse::Mode::Frozen);
 		}
     }
 
     void mouseMoved(const float x, const float y) override
     {
-		if (!jop::Engine::exiting() && jop::Engine::hasCurrentScene() && keyDown(jop::Keyboard::LShift)/* && !m_firstShift*/)
+		if (!jop::Engine::exiting() && jop::Engine::hasCurrentScene() && keyDown(jop::Keyboard::LShift))
         {
-			
-
             auto& cam = *jop::Engine::getCurrentScene().findChild("cam");
 
             m_mx += x;
@@ -51,16 +47,11 @@ public:
 
             cam.setRotation(glm::radians(-m_my), glm::radians(-m_mx), 0.f);
         }
-		/*else if (m_firstShift)
-		{
-			m_firstShift = false;
-		}*/
+
 		else
 		{
 			jop::Engine::getSubsystem<jop::Window>()->setMouseMode(jop::Mouse::Mode::Visible);
-			//m_firstShift = false;
-			//m_mx = 0.f;
-			//m_my = 0.f;
+
 		}
     }
 
@@ -101,6 +92,13 @@ private:
 	bool m_firstShift;
 };
 
+enum Action
+{
+    SELECT,
+    BULLET_TOWER,
+    MISSILE_TOWER,
+};
+
 class SceneGame : public jop::Scene
 {
 private:
@@ -109,11 +107,14 @@ private:
     jop::WeakReference<jop::Object> m_text;
     float m_time;
     float m_enemyTimer;
+    Action m_action;
+    glm::vec3* m_path;
+    const int m_numWaypoints = 16;
 public:
     SceneGame()
         : jop::Scene("MyScene")
     {
-        //getRenderer().setMask(3);
+        getRenderer().setMask(3);
 
         jop::Window* w = jop::Engine::getSubsystem<jop::Window>();
         jop::Engine::getSubsystem<jop::Window>()->setEventHandler<GameEventHandler>(*w);
@@ -123,14 +124,15 @@ public:
         //getWorld().setDebugMode(true);
 
         //camera
-        auto camObj = createChild("cam");
-        camObj->setPosition(0.0f, 30.0f, 0.0f);
-        auto cam = camObj->createChild("view");
-        //cam->setPosition(0.0f, 0.0f, 40.0f);
+        auto cam = createChild("cam");
+        cam->setPosition(0.0f, 30.0f, 0.0f);
         cam->createComponent<jop::Camera>(getRenderer(), jop::Camera::Projection::Perspective).setFieldOfView(PI / 2.0f);
 
         //terrain
-        generateLevel(&this->getAsObject());
+        const float levelScale = 10.f;
+
+        generateLevel(&this->getAsObject(), levelScale);
+        generatePath(levelScale);
 
         //cube material
         auto& material = jop::ResourceManager::getEmptyResource<jop::Material>("cubeMaterial", jop::Material::Attribute::DefaultLighting);
@@ -155,6 +157,19 @@ public:
         auto light = createChild("light");
         light->createComponent<jop::LightSource>(getRenderer(), jop::LightSource::Type::Directional).setIntensity(jop::Color(1.0f, 0.9f, 0.3f)).setAttenuation(50);
         light->setRotation(-0.3f, 0.0f, 0.f);
+
+        //HUD
+        //cam
+        auto orthoCam = createChild("orthoCam");
+        orthoCam->setPosition(0.0f, 0.0f, 0.0f);
+        auto cam2 = orthoCam->createChild("view");
+        cam2->createComponent<jop::Camera>(getRenderer(), jop::Camera::Projection::Orthographic).setRenderMask(1 << 1);
+        cam2->setActive(true);
+
+        //buttons
+        createButton(glm::vec2(420.0f, 200.0f), glm::vec2(-1.0f), "textures/button_bullet.png");
+        createButton(glm::vec2(420.0f, 000.0f), glm::vec2(-1.0f), "textures/button_missile.png");
+        createButton(glm::vec2(420.0f, -200.0f), glm::vec2(-1.0f), "textures/button_shield.png");
     }
 
     void preUpdate(const float dt) override
@@ -167,7 +182,7 @@ public:
 
         auto cam = findChild("cam");
 
-        float speed = 10.f;
+        float speed = 20.f;
 
         if (eh->keyDown(jop::Keyboard::D))
         {
@@ -193,7 +208,16 @@ public:
         if (m_time > 0.01f)
         {
             m_time -= 0.01f;
-            jop::RayInfo ray = getWorld().checkRayClosest(cam->getGlobalPosition(), cam->getGlobalFront() * 1000.f);
+            jop::RayInfo ray;
+            if (eh->keyDown(jop::Keyboard::LShift))
+            {
+                ray = getWorld().checkRayClosest(cam->getGlobalPosition(), cam->getGlobalFront() * 1000.f);
+            }
+            else
+            {
+                ray = getWorld().checkRayClosest(cam->getGlobalPosition(), cam->getComponent<jop::Camera>()->getPickRay(eh->getCursorPosition(), jop::Engine::getMainRenderTarget()) * 1000.f);   
+            }
+            
             if (ray.point != glm::vec3(0))
             {
                 m_object->setPosition(ray.point);
@@ -207,18 +231,13 @@ public:
 
             float t = jop::Engine::getTotalTime();
 
-            auto o = createChild("TargetObject");
-            o->setPosition(cos(t) * 10.f + 64.f, sin(t * 5.0f) * 5.f + 32.f, sin(t) * 10.f + 64.f);
-            o->createComponent<jop::GenericDrawable>(getRenderer());
-            o->addTag("target");
-            auto drawable = o->getComponent<jop::GenericDrawable>();
-            drawable->setModel(jop::Model(jop::Mesh::getDefault(), jop::ResourceManager::getExistingResource<jop::Material>("bulletMaterial")));
+            createEnemy(10.f, 10.f, 0)->getComponent<Enemy>()->setPath(m_path, m_numWaypoints);
         }
     }
 private:
-    void generateLevel(jop::Object* o)
+    void generateLevel(jop::Object* o, float scale)
     {
-        const float scale = 10.0f;
+        //const float scale = 10.0f;
 
         auto terrain = o->createChild("terrain");
         auto& material1 = jop::ResourceManager::getEmptyResource<jop::Material>("terrainMaterial", jop::Material::Attribute::DefaultLighting);
@@ -280,10 +299,36 @@ private:
         auto& drawable1 = terrain->createComponent<jop::GenericDrawable>(getRenderer());
         drawable1.setModel(jop::Model(mesh, material1));
     }
+    void generatePath(float scale)
+    {
+        m_path = new glm::vec3[m_numWaypoints];
 
+        for (int i = 0; i < m_numWaypoints; i++)
+        {
+            float x = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * scale * 32.0f;
+            float z = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * scale * 32.0f;
+            float y = terrainY(x, z) + 4.0f;
+
+            m_path[i] = glm::vec3(x, y, z);
+        }
+    }
     float terrainY(float x, float z)
     {
         return sin(x * 5.f)*sin(z * 5.f)*10.0f;
+    }
+    jop::WeakReference<jop::Object> createEnemy(float x, float y, int type)
+    {
+        //TODO: switch(type) & different enemy types
+        auto o = createChild("enemy");
+        o->createComponent<Enemy>();
+        return o;
+    }
+
+    void createButton(glm::vec2 position, glm::vec2 size, std::string path)
+    {
+        auto o = findChild("orthoCam")->createChild("button");
+        o->createComponent<UIComponent>(path);
+        o->setPosition(glm::vec3(position.x, position.y, 1.0f)).setScale(glm::vec3(size.x, size.y, 1.0f));
     }
 };
 
