@@ -3,6 +3,8 @@
 
 #include <Jopnal/Jopnal.hpp>
 
+
+
 class UIComponent : public jop::Component
 {
 public:
@@ -23,6 +25,8 @@ public:
 	void init(std::string texturePath)
 	{
         auto o = getObject();// ->getScene().findChild("orthoCam");
+
+        o->addTag("HUD");
 		o->createComponent<jop::GenericDrawable>(o->getScene().getRenderer());
 		auto drawable1 = o->getComponent<jop::GenericDrawable>();
 		drawable1->setRenderGroup(1);
@@ -39,34 +43,46 @@ public:
 		: UIComponent(objRef, texturePath)
 	{
 		m_hover = false;
-        m_message = nullptr;
+        m_message = "";
+        size = glm::vec2(100.f);
 	}
 
-	void setAction(jop::Message* m)
+	void setMessage(std::string m)
 	{
 		m_message = m;
 	}
 
-	void onClick()
-	{
-		if (m_hover && m_message != nullptr)
-			jop::Engine::sendMessage(*(m_message));
-	}
+    bool click();
+	
 
-	void onMouseMove(float mouseX, float mouseY)
+	void mouseMove(const float mouseX, const float mouseY)
 	{
-		glm::vec3 pos = getObject()->getGlobalPosition();
-		if (mouseX > pos.x && mouseY > pos.y && mouseX < pos.x + size.x && mouseY < pos.y + size.y)
+        glm::vec2 windowSize = jop::Engine::getSubsystem<jop::Window>()->getSize();
+		glm::vec3 pos = getObject()->getLocalPosition() + glm::vec3(windowSize / 2.0f, 0.0f);
+        glm::vec3 scale = getObject()->getGlobalScale();
+        glm::vec2 sizePerTwo = size / 2.0f;
+        glm::vec2 mousePos = /*glm::vec2(mouseX, mouseY);*/ jop::Engine::getSubsystem<jop::Window>()->getEventHandler()->getCursorPosition();
+
+        if (mousePos.x > pos.x - sizePerTwo.x && mousePos.y > pos.y - sizePerTwo.y && mousePos.x < pos.x + sizePerTwo.x && mousePos.y < pos.y + sizePerTwo.y)
 		{
+            if (!m_hover)
+            {
+                //TODO: change material
+            }
+
 			m_hover = true;
 		}
 		else
 		{
+            if (m_hover)
+            {
+                //TODO: change material
+            }
 			m_hover = false;
 		}
 	}
 private:
-	jop::Message* m_message;
+	std::string m_message;
 	glm::vec2 size;
 	bool m_hover;
 };

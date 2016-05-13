@@ -9,6 +9,106 @@
 #include "HUDComponent.h"
 #include "Enemy.h"
 
+enum Action
+{
+    SELECT,
+    BULLET_TOWER,
+    MISSILE_TOWER,
+};
+
+//----- The Master Component -----
+class GameController : public jop::Component
+{
+public:
+    GameController(jop::Object& objRef)
+        : jop::Component(objRef, "GC"),
+        m_action(SELECT)
+    {
+
+    };
+
+    GameController(const GameController& misRef, jop::Object& objRef)
+        : jop::Component(objRef, "GC")
+    {
+    };
+
+    JOP_GENERIC_COMPONENT_CLONE(GameController);
+
+
+
+    void mouseLeft()
+    {
+        switch (m_action)
+        {
+        case SELECT:
+        {
+            //try to click buttons
+
+            for (auto object : getObject()->getScene().findChildrenWithTag("HUD", true))
+            {
+                auto button = object->getComponent<Button>();
+                if (button != nullptr)
+                {
+                    if (button->click())
+                    {
+                        //"collision" found, don't click other buttons or select towers
+                        return;
+                    }
+                }
+            }
+
+            //else
+            //TODO: select tower
+            break;
+        }
+        case BULLET_TOWER:
+        {
+            break;
+        }
+        case MISSILE_TOWER:
+        {
+            if (jop::Engine::getCurrentScene().findChildrenWithTag("sword", false).empty())
+            {
+                JOP_DEBUG_INFO("404 Sword not found.");
+                return;
+            }
+
+            auto& sword = *jop::Engine::getCurrentScene().findChildrenWithTag("sword", false)[0];
+            glm::vec3 pos = sword.getLocalPosition();
+
+            //create tower
+            auto tower = jop::Engine::getCurrentScene().createChild("tower");
+            tower->setPosition(pos + glm::vec3(0.f, 1.f, 0.f));
+            tower->createComponent<Tower>();
+            auto& drawable = tower->createComponent<jop::GenericDrawable>(jop::Engine::getCurrentScene().getRenderer());
+            drawable.setModel(jop::Model(jop::Mesh::getDefault(), jop::ResourceManager::getExistingResource<jop::Material>("cubeMaterial")));
+
+            JOP_DEBUG_INFO("Tower Created.");
+            m_action = SELECT;
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
+    void setAction(int a)
+    {
+        if (m_action == a)
+        {
+            m_action = SELECT;
+        }
+        else
+        {
+            m_action = static_cast<Action>(a);
+        }
+    }
+private:
+    Action m_action;
+    jop::WeakReference<jop::Object> m_selected;
+};
+
+//----- Event handler -----
 class GameEventHandler
     : public jop::WindowEventHandler
 {
@@ -38,21 +138,36 @@ public:
 
     void mouseMoved(const float x, const float y) override
     {
-		if (!jop::Engine::exiting() && jop::Engine::hasCurrentScene() && keyDown(jop::Keyboard::LShift))
+        if (!jop::Engine::exiting() && jop::Engine::hasCurrentScene())
         {
-            auto& cam = *jop::Engine::getCurrentScene().findChild("cam");
+            if (keyDown(jop::Keyboard::LShift))
+            {
+                auto& cam = *jop::Engine::getCurrentScene().findChild("cam");
 
-            m_mx += x;
-            m_my = glm::clamp(m_my + y, -85.f, 85.f);
+                m_mx += x;
+                m_my = glm::clamp(m_my + y, -85.f, 85.f);
 
-            cam.setRotation(glm::radians(-m_my), glm::radians(-m_mx), 0.f);
+                cam.setRotation(glm::radians(-m_my), glm::radians(-m_mx), 0.f);
+            }
+
+            else
+            {
+                jop::Engine::getSubsystem<jop::Window>()->setMouseMode(jop::Mouse::Mode::Visible);
+            }
+            //send mouse movement to hud elements
+
+            for (auto o : jop::Engine::getCurrentScene().findChildrenWithTag("HUD", true))
+            {
+                auto c = o->getComponent<Button>();
+                if (c != nullptr)
+                {
+                    c->mouseMove(x, y);
+                }
+            }
+
+            //debug mouse position
+            jop::Engine::getCurrentScene().findChild("DEBUG")->getComponent<jop::Text>()->setString("MPos: " + std::to_string(x) + ", " + std::to_string(y));
         }
-
-		else
-		{
-			jop::Engine::getSubsystem<jop::Window>()->setMouseMode(jop::Mouse::Mode::Visible);
-
-		}
     }
 
     void mouseButtonReleased(const int button, const int)override
@@ -61,23 +176,7 @@ public:
         {
             if (!jop::Engine::exiting() && jop::Engine::hasCurrentScene())
             {
-                if (jop::Engine::getCurrentScene().findChildrenWithTag("sword", false).empty())
-                {
-                    JOP_DEBUG_INFO("404 Sword not found.");
-                    return;
-                }
-
-                auto& sword = *jop::Engine::getCurrentScene().findChildrenWithTag("sword", false)[0];
-                glm::vec3 pos = sword.getLocalPosition();
-
-                //create tower
-                auto tower = jop::Engine::getCurrentScene().createChild("tower");
-                tower->setPosition(pos + glm::vec3(0.f, 1.f, 0.f));
-                tower->createComponent<Tower>();
-                auto& drawable = tower->createComponent<jop::GenericDrawable>(jop::Engine::getCurrentScene().getRenderer());
-                drawable.setModel(jop::Model(jop::Mesh::getDefault(), jop::ResourceManager::getExistingResource<jop::Material>("cubeMaterial")));
-
-                JOP_DEBUG_INFO("Tower Created.");
+                jop::Engine::getCurrentScene().findChild("GC")->getComponent<GameController>()->mouseLeft();
             }
         }
     }
@@ -92,13 +191,8 @@ private:
 	bool m_firstShift;
 };
 
-enum Action
-{
-    SELECT,
-    BULLET_TOWER,
-    MISSILE_TOWER,
-};
 
+//----- Scene -----
 class SceneGame : public jop::Scene
 {
 private:
@@ -107,7 +201,6 @@ private:
     jop::WeakReference<jop::Object> m_text;
     float m_time;
     float m_enemyTimer;
-    Action m_action;
     glm::vec3* m_path;
     const int m_numWaypoints = 16;
 public:
@@ -158,6 +251,9 @@ public:
         light->createComponent<jop::LightSource>(getRenderer(), jop::LightSource::Type::Directional).setIntensity(jop::Color(1.0f, 0.9f, 0.3f)).setAttenuation(50);
         light->setRotation(-0.3f, 0.0f, 0.f);
 
+        //Game Controller
+        createChild("GC")->createComponent<GameController>();
+
         //HUD
         //cam
         auto orthoCam = createChild("orthoCam");
@@ -167,9 +263,20 @@ public:
         cam2->setActive(true);
 
         //buttons
-        createButton(glm::vec2(420.0f, 200.0f), glm::vec2(-1.0f), "textures/button_bullet.png");
-        createButton(glm::vec2(420.0f, 000.0f), glm::vec2(-1.0f), "textures/button_missile.png");
-        createButton(glm::vec2(420.0f, -200.0f), glm::vec2(-1.0f), "textures/button_shield.png");
+        createButton(glm::vec2(420.0f, 200.0f), glm::vec2(-1.0f), "textures/button_bullet.png")->setMessage( "[Co] setAction 1");
+        createButton(glm::vec2(420.0f, 000.0f), glm::vec2(-1.0f), "textures/button_missile.png")->setMessage("[Co] setAction 2");;
+        createButton(glm::vec2(420.0f, -200.0f), glm::vec2(-1.0f), "textures/button_shield.png")->setMessage("[Co] setAction 0");;
+
+        //degug display
+        auto debugObject = createChild("DEBUG");
+        debugObject->setScale(800.0f, 800.0f, 1.0f);
+        jop::Text& text = debugObject->createComponent<jop::Text>(getRenderer());
+        text.setFont(jop::ResourceManager::getResource<jop::Font, std::string, int>(std::string("fonts/novem___.ttf"), 64));
+        text.setRenderGroup(1);
+        text.setString("Mouse Position: ");
+        text.setColor(jop::Color(0.0f, 0.9f, 0.0f, 1.0f));
+        
+        //jop::Engine::sendMessage("[Co] setAction 2");
     }
 
     void preUpdate(const float dt) override
@@ -205,7 +312,7 @@ public:
 
         auto collider = findChild("terrain")->getComponent<jop::RigidBody>();
 
-        if (m_time > 0.01f)
+        if (m_time > 0.01f && collider != nullptr)
         {
             m_time -= 0.01f;
             jop::RayInfo ray;
@@ -240,8 +347,8 @@ private:
         //const float scale = 10.0f;
 
         auto terrain = o->createChild("terrain");
-        auto& material1 = jop::ResourceManager::getEmptyResource<jop::Material>("terrainMaterial", jop::Material::Attribute::DefaultLighting);
-        material1.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Bullet.png", true));
+        auto& material1 = jop::ResourceManager::getEmptyResource<jop::Material>("terrainMaterial", jop::Material::Attribute::Default);
+        material1.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Terrain.png", true));
 
         std::vector<jop::Vertex> vertices;
 
@@ -254,7 +361,7 @@ private:
         {
             for (int j = 0; j < h; j++)
             {
-                //meshify
+                //create mesh
                 jop::Vertex v;
                 float dx = i - w / 2.0f;
                 float dy = j - h / 2.0f;
@@ -324,11 +431,12 @@ private:
         return o;
     }
 
-    void createButton(glm::vec2 position, glm::vec2 size, std::string path)
+    Button* createButton(glm::vec2 position, glm::vec2 size, std::string path)
     {
         auto o = findChild("orthoCam")->createChild("button");
-        o->createComponent<UIComponent>(path);
+        o->createComponent<Button>(path);
         o->setPosition(glm::vec3(position.x, position.y, 1.0f)).setScale(glm::vec3(size.x, size.y, 1.0f));
+        return o->getComponent<Button>();
     }
 };
 

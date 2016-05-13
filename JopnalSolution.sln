@@ -4,6 +4,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Jopnal", "Jopnal\Jopnal.vcxproj", "{9142D34F-FCC5-429B-8121-A302B00E6D27}"
+	ProjectSection(ProjectDependencies) = postProject
+		{071B6DBF-2422-42C5-AA5B-A92129AF838A} = {071B6DBF-2422-42C5-AA5B-A92129AF838A}
+		{05E2B2F8-17E8-4A01-8396-27CE1B84720E} = {05E2B2F8-17E8-4A01-8396-27CE1B84720E}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Jopnal Engine", "..\..\..\GitHub\Jopnal\project\Jopnal Engine.vcxproj", "{05E2B2F8-17E8-4A01-8396-27CE1B84720E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Jopnal Resources", "..\..\..\GitHub\Jopnal\project\Jopnal Resources.vcxproj", "{071B6DBF-2422-42C5-AA5B-A92129AF838A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Jopnal Main", "..\..\..\GitHub\Jopnal\project\Jopnal Main.vcxproj", "{ECA93DD8-5516-4C66-A10A-A1D0D034B929}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +31,30 @@ Global
 		{9142D34F-FCC5-429B-8121-A302B00E6D27}.Release|Win32.Build.0 = Release|Win32
 		{9142D34F-FCC5-429B-8121-A302B00E6D27}.ReleaseStatic|Win32.ActiveCfg = Release|Win32
 		{9142D34F-FCC5-429B-8121-A302B00E6D27}.ReleaseStatic|Win32.Build.0 = Release|Win32
+		{05E2B2F8-17E8-4A01-8396-27CE1B84720E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{05E2B2F8-17E8-4A01-8396-27CE1B84720E}.Debug|Win32.Build.0 = Debug|Win32
+		{05E2B2F8-17E8-4A01-8396-27CE1B84720E}.DebugStatic|Win32.ActiveCfg = DebugStatic|Win32
+		{05E2B2F8-17E8-4A01-8396-27CE1B84720E}.DebugStatic|Win32.Build.0 = DebugStatic|Win32
+		{05E2B2F8-17E8-4A01-8396-27CE1B84720E}.Release|Win32.ActiveCfg = Release|Win32
+		{05E2B2F8-17E8-4A01-8396-27CE1B84720E}.Release|Win32.Build.0 = Release|Win32
+		{05E2B2F8-17E8-4A01-8396-27CE1B84720E}.ReleaseStatic|Win32.ActiveCfg = ReleaseStatic|Win32
+		{05E2B2F8-17E8-4A01-8396-27CE1B84720E}.ReleaseStatic|Win32.Build.0 = ReleaseStatic|Win32
+		{071B6DBF-2422-42C5-AA5B-A92129AF838A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{071B6DBF-2422-42C5-AA5B-A92129AF838A}.Debug|Win32.Build.0 = Debug|Win32
+		{071B6DBF-2422-42C5-AA5B-A92129AF838A}.DebugStatic|Win32.ActiveCfg = Debug|Win32
+		{071B6DBF-2422-42C5-AA5B-A92129AF838A}.DebugStatic|Win32.Build.0 = Debug|Win32
+		{071B6DBF-2422-42C5-AA5B-A92129AF838A}.Release|Win32.ActiveCfg = Release|Win32
+		{071B6DBF-2422-42C5-AA5B-A92129AF838A}.Release|Win32.Build.0 = Release|Win32
+		{071B6DBF-2422-42C5-AA5B-A92129AF838A}.ReleaseStatic|Win32.ActiveCfg = Release|Win32
+		{071B6DBF-2422-42C5-AA5B-A92129AF838A}.ReleaseStatic|Win32.Build.0 = Release|Win32
+		{ECA93DD8-5516-4C66-A10A-A1D0D034B929}.Debug|Win32.ActiveCfg = Debug|Win32
+		{ECA93DD8-5516-4C66-A10A-A1D0D034B929}.Debug|Win32.Build.0 = Debug|Win32
+		{ECA93DD8-5516-4C66-A10A-A1D0D034B929}.DebugStatic|Win32.ActiveCfg = Debug|Win32
+		{ECA93DD8-5516-4C66-A10A-A1D0D034B929}.DebugStatic|Win32.Build.0 = Debug|Win32
+		{ECA93DD8-5516-4C66-A10A-A1D0D034B929}.Release|Win32.ActiveCfg = Release|Win32
+		{ECA93DD8-5516-4C66-A10A-A1D0D034B929}.Release|Win32.Build.0 = Release|Win32
+		{ECA93DD8-5516-4C66-A10A-A1D0D034B929}.ReleaseStatic|Win32.ActiveCfg = Release|Win32
+		{ECA93DD8-5516-4C66-A10A-A1D0D034B929}.ReleaseStatic|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
