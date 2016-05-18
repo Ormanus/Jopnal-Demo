@@ -5,6 +5,7 @@
 
 //#include <Jopnal/Jopnal.hpp>
 #include <random>
+#include "MapComponent.h"
 #include "Tower.h"
 #include "HUDComponent.h"
 #include "Enemy.h"
@@ -104,8 +105,15 @@ public:
         }
     }
 private:
+	//Interaction variables
     Action m_action;
     jop::WeakReference<jop::Object> m_selected;
+
+	//Game variables
+	int score;
+	int money;
+	int lives;
+	int level;
 };
 
 //----- Event handler -----
@@ -201,8 +209,8 @@ private:
     jop::WeakReference<jop::Object> m_text;
     float m_time;
     float m_enemyTimer;
-    glm::vec3* m_path;
-    const int m_numWaypoints = 16;
+    //glm::vec3* m_path;
+    //const int m_numWaypoints = 16;
 public:
     SceneGame()
         : jop::Scene("MyScene")
@@ -224,8 +232,10 @@ public:
         //terrain
         const float levelScale = 10.f;
 
-        generateLevel(&this->getAsObject(), levelScale);
-        generatePath(levelScale);
+		auto map = createChild("map");
+		auto& mapComp = map->createComponent<MapComponent>();
+		mapComp.generateLevel(&this->getAsObject(), levelScale);
+		mapComp.generatePath(levelScale);
 
         //cube material
         auto& material = jop::ResourceManager::getEmptyResource<jop::Material>("cubeMaterial", jop::Material::Attribute::DefaultLighting);
@@ -243,8 +253,8 @@ public:
         m_object->setRotation(0.0f, PI / 4.f, PI / 2.0f);
 
         //skybox
-        auto& map = jop::ResourceManager::getResource<jop::Cubemap>("Cubemap/right.png", "Cubemap/left.png", "Cubemap/top.png", "Cubemap/bottom.png", "Cubemap/front.png", "Cubemap/back.png", false);
-        m_object->createComponent<jop::SkyBox>(getRenderer()).setMap(map);
+        auto& cubeMap = jop::ResourceManager::getResource<jop::Cubemap>("Cubemap/right.png", "Cubemap/left.png", "Cubemap/top.png", "Cubemap/bottom.png", "Cubemap/front.png", "Cubemap/back.png", false);
+		m_object->createComponent<jop::SkyBox>(getRenderer()).setMap(cubeMap);
 
         //light
         auto light = createChild("light");
@@ -338,91 +348,13 @@ public:
 
             float t = jop::Engine::getTotalTime();
 
-            createEnemy(10.f, 10.f, 0)->getComponent<Enemy>()->setPath(m_path, m_numWaypoints);
+			auto map = findChild("map");
+
+            createEnemy(10.f, 10.f, 0)->getComponent<Enemy>()->setPath(map->getComponent<MapComponent>()->getPath());
         }
     }
 private:
-    void generateLevel(jop::Object* o, float scale)
-    {
-        //const float scale = 10.0f;
-
-        auto terrain = o->createChild("terrain");
-        auto& material1 = jop::ResourceManager::getEmptyResource<jop::Material>("terrainMaterial", jop::Material::Attribute::Default);
-        material1.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Terrain.png", true));
-
-        std::vector<jop::Vertex> vertices;
-
-        const int w = 32;
-        const int h = 32;
-
-        std::vector<glm::vec3> points;
-
-        for (int i = 0; i < w; i++)
-        {
-            for (int j = 0; j < h; j++)
-            {
-                //create mesh
-                jop::Vertex v;
-                float dx = i - w / 2.0f;
-                float dy = j - h / 2.0f;
-
-                v.position.x = i * scale;
-                v.position.z = j * scale;
-                v.position.y = terrainY(v.position.x, v.position.z);
-                v.texCoords.x = 0.0f;
-                v.texCoords.y = 0.0f;
-                vertices.push_back(v);
-                points.push_back(v.position);
-
-                v.position.z = (j + 1.0f) * scale;
-                v.position.y = terrainY(v.position.x, v.position.z);
-                v.texCoords.y = 1.0f;
-                vertices.push_back(v);
-                points.push_back(v.position);
-
-                v.position.x = (i + 1.0f) * scale;
-                v.position.y = terrainY(v.position.x, v.position.z);
-                v.texCoords.x = 1.0f;
-                vertices.push_back(v);
-                vertices.push_back(v);
-                points.push_back(v.position);
-                points.push_back(v.position);
-
-                v.position.z = j * scale;
-                v.position.y = terrainY(v.position.x, v.position.z);
-                v.texCoords.y = 0.0f;
-                vertices.push_back(v);
-                points.push_back(v.position);
-
-                v.position.x = i * scale;
-                v.position.y = terrainY(v.position.x, v.position.z);
-                v.texCoords.x = 0.0f;
-                vertices.push_back(v);
-                points.push_back(v.position);
-            }
-        }
-        terrain->createComponent<jop::RigidBody>(getWorld(), jop::RigidBody::ConstructInfo(jop::ResourceManager::getNamedResource<jop::TerrainShape>("mesh", points)));
-        auto& mesh = jop::ResourceManager::getNamedResource<jop::Mesh>("mesh", vertices, std::vector<unsigned int>());
-        auto& drawable1 = terrain->createComponent<jop::GenericDrawable>(getRenderer());
-        drawable1.setModel(jop::Model(mesh, material1));
-    }
-    void generatePath(float scale)
-    {
-        m_path = new glm::vec3[m_numWaypoints];
-
-        for (int i = 0; i < m_numWaypoints; i++)
-        {
-            float x = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * scale * 32.0f;
-            float z = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * scale * 32.0f;
-            float y = terrainY(x, z) + 4.0f;
-
-            m_path[i] = glm::vec3(x, y, z);
-        }
-    }
-    float terrainY(float x, float z)
-    {
-        return sin(x * 5.f)*sin(z * 5.f)*10.0f;
-    }
+    
     jop::WeakReference<jop::Object> createEnemy(float x, float y, int type)
     {
         //TODO: switch(type) & different enemy types

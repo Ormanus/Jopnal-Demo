@@ -1,7 +1,7 @@
 #include <Jopnal/Jopnal.hpp>
 #include <Jopnal/Graphics.hpp>
 #include <vector>
-#include "SceneStart.h"
+//#include "SceneStart.h"
 #include "SceneGame.h"
 
 int main(int c, char** v)

@@ -3,8 +3,6 @@
 
 #include <Jopnal/Jopnal.hpp>
 
-
-
 class UIComponent : public jop::Component
 {
 public:

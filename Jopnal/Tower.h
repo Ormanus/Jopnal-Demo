@@ -93,4 +93,11 @@ private:
     float m_timer;
     float m_rof;
 };
+
+//TODO: bullet tower, AoE tower, shield, machine gun tower, laser tower...
+// production tower?
+
+//TODO: make towers upgradeable
+// = no constant valiues, everytinhg can be modified!
+
 #endif
