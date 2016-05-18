@@ -2,13 +2,16 @@
 #define MISSILE_H
 
 #include "MapComponent.h" //<Jopnal/Jopnal.hpp>
+//#include "GameController.h"
+
+class GameController;
 
 class Missile : public jop::Component
 {
 public:
 
     Missile(jop::Object& objRef)
-        : jop::Component(objRef, "name"),
+        : jop::Component(objRef, "missile"),
         m_timer(10.0f)
     {
         objRef.setScale(0.75f, 0.75f, 2.0f);
@@ -19,7 +22,7 @@ public:
     };
 
     Missile(const Missile& misRef, jop::Object& objRef)
-        : jop::Component(objRef, "name"),
+        : jop::Component(objRef, "missile"),
         m_timer(10.0f)
     {
         objRef.setScale(0.75f, 0.75f, 2.0f);
@@ -30,68 +33,11 @@ public:
 
     JOP_GENERIC_COMPONENT_CLONE(Missile);
 
-    void setTarget(jop::WeakReference<jop::Object> o)
-    {
-        m_target = o;
-    }
+	void setTarget(jop::WeakReference<jop::Object> o);
 
-    void setVelocity(glm::vec3 vel)
-    {
-        m_velocity = vel;
-    }
+	void setVelocity(glm::vec3 vel);
 
-    void update(const float dt) override
-    {
-        auto o = getObject();
-        if (!m_target.expired())
-        {
-
-            m_tot_time += dt;
-
-			glm::vec3 vel = m_velocity;// glm::normalize(o->getLocalFront());
-            glm::vec3 delta = m_target->getGlobalPosition() - o->getGlobalPosition();
-            float l = glm::length(delta);
-            delta = glm::normalize(delta);
-
-            glm::vec3 axis = glm::cross(vel, delta); //axis
-
-            glm::vec3 normal = glm::normalize(glm::cross(axis, vel)) * dt * 10.f; //turning direction
-
-			glm::vec3 newVel = vel + normal;
-
-			m_velocity = glm::normalize(newVel);
-			
-            float cosTheta = glm::dot(vel, delta);
-
-            if (abs(acos(cosTheta)) < 0.2)
-            {
-                m_speed += dt;
-            }
-            else
-            {
-				if (m_speed > 2.5f)
-				{
-					m_speed -= dt*2.f;
-				}
-            }
-            if (l < 1.0f)
-            {
-                m_target->removeSelf();
-                o->removeSelf();
-            }
-        }
-        else
-        {
-            o->rotate(dt * 2.0f, dt * 2.0f, dt * 2.0f);
-            //getObject()->removeSelf();
-        }
-        o->move(m_velocity * 20.f * dt * m_speed);
-        m_timer -= dt;
-        if (m_timer < 0)
-        {
-            getObject()->removeSelf();
-        }
-    }
+	void update(const float dt) override;
 private:
     jop::WeakReference<jop::Object> m_target;
     glm::vec3 m_velocity;
@@ -100,18 +46,20 @@ private:
     float m_tot_time;
 };
 
+////  BULLET CLASS  ////
+
 class Bullet : public jop::Component
 {
 public:
 
     Bullet(jop::Object& objRef)
-        : jop::Component(objRef, "name"),
+        : jop::Component(objRef, "bullet"),
         m_velocity(glm::vec3(0)),
         timer(5.0f)
     {};
 
     Bullet(const Bullet& bulRef, jop::Object& objRef)
-        : jop::Component(objRef, "name"),
+        : jop::Component(objRef, "bullet"),
         m_velocity(bulRef.getVelocity()),
         timer(5.0f)
     {};

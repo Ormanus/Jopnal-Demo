@@ -34,35 +34,10 @@ public:
 
     void update(const float dt)override
     {
-        auto o = getObject();
         m_timer -= dt;
         if (m_timer < 0.f)
         {
-            if (m_target.get() != nullptr && !m_target.expired())
-            {
-                auto missile = o->getScene().createChild("Missile");
-                missile->setPosition(o->getLocalPosition());
-
-                auto& component = missile->createComponent<Missile>();
-                component.setTarget(m_target);
-                component.setVelocity(glm::vec3(0.f, 15.f, 0.f));
-
-                missile->createComponent<jop::GenericDrawable>(o->getScene().getRenderer());
-                auto drawable = missile->getComponent<jop::GenericDrawable>();
-                drawable->setModel(jop::Model(jop::Mesh::getDefault(), jop::ResourceManager::getExistingResource<jop::Material>("bulletMaterial")));
-
-                JOP_DEBUG_INFO("Missile Created");
-
-                m_timer = m_rof;
-            }
-            else
-            {
-                JOP_DEBUG_INFO("Finding targets...");
-
-                findTarget();
-                
-                m_timer = m_rof * 2.f;
-            }
+			act();
         }
     }
 
@@ -88,7 +63,37 @@ public:
             m_target = targets[rand() % (targets.size())];
     }
 
-private:
+	virtual void act()
+	{
+		auto o = getObject();
+		if (m_target.get() != nullptr && !m_target.expired())
+		{
+			auto missile = o->getScene().createChild("Missile");
+			missile->setPosition(o->getLocalPosition());
+
+			auto& component = missile->createComponent<Missile>();
+			component.setTarget(m_target);
+			component.setVelocity(glm::vec3(0.f, 15.f, 0.f));
+
+			missile->createComponent<jop::GenericDrawable>(o->getScene().getRenderer());
+			auto drawable = missile->getComponent<jop::GenericDrawable>();
+			drawable->setModel(jop::Model(jop::Mesh::getDefault(), jop::ResourceManager::getExistingResource<jop::Material>("bulletMaterial")));
+
+			JOP_DEBUG_INFO("Missile Created");
+
+			m_timer = m_rof;
+		}
+		else
+		{
+			JOP_DEBUG_INFO("Finding targets...");
+
+			findTarget();
+
+			m_timer = m_rof * 2.f;
+		}
+	}
+
+protected:
     jop::WeakReference<jop::Object> m_target;
     float m_timer;
     float m_rof;

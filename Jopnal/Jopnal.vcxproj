@@ -90,10 +90,12 @@
   <ItemGroup>
     <ClCompile Include="HUDComponent.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Missile.cpp" />
     <ClCompile Include="SceneGame.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Enemy.h" />
+    <ClInclude Include="GameController.h" />
     <ClInclude Include="HUDComponent.h" />
     <ClInclude Include="Missile.h" />
     <ClInclude Include="SceneGame.h" />

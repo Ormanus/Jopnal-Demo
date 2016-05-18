@@ -20,6 +20,8 @@ public:
         m_health = 100.f;
         m_speed = 10.f;
         m_currentWaypoint = 0;
+
+		m_reward = 10;
         //m_maxWaypoint = -1;
     };
 
@@ -63,11 +65,18 @@ public:
             }
         }
     }
+
+	int getReward()
+	{
+		return m_reward;
+	}
+
 private:
     float m_health;
     float m_speed;
 	std::vector<glm::vec3> m_path;
     int m_currentWaypoint;
+	int m_reward;
     //int m_maxWaypoint;
 };
 

@@ -5,116 +5,11 @@
 
 //#include <Jopnal/Jopnal.hpp>
 #include <random>
-#include "MapComponent.h"
+//#include "MapComponent.h"
 #include "Tower.h"
-#include "HUDComponent.h"
+//#include "HUDComponent.h"
 #include "Enemy.h"
-
-enum Action
-{
-    SELECT,
-    BULLET_TOWER,
-    MISSILE_TOWER,
-};
-
-//----- The Master Component -----
-class GameController : public jop::Component
-{
-public:
-    GameController(jop::Object& objRef)
-        : jop::Component(objRef, "GC"),
-        m_action(SELECT)
-    {
-
-    };
-
-    GameController(const GameController& misRef, jop::Object& objRef)
-        : jop::Component(objRef, "GC")
-    {
-    };
-
-    JOP_GENERIC_COMPONENT_CLONE(GameController);
-
-
-
-    void mouseLeft()
-    {
-        switch (m_action)
-        {
-        case SELECT:
-        {
-            //try to click buttons
-
-            for (auto object : getObject()->getScene().findChildrenWithTag("HUD", true))
-            {
-                auto button = object->getComponent<Button>();
-                if (button != nullptr)
-                {
-                    if (button->click())
-                    {
-                        //"collision" found, don't click other buttons or select towers
-                        return;
-                    }
-                }
-            }
-
-            //else
-            //TODO: select tower
-            break;
-        }
-        case BULLET_TOWER:
-        {
-            break;
-        }
-        case MISSILE_TOWER:
-        {
-            if (jop::Engine::getCurrentScene().findChildrenWithTag("sword", false).empty())
-            {
-                JOP_DEBUG_INFO("404 Sword not found.");
-                return;
-            }
-
-            auto& sword = *jop::Engine::getCurrentScene().findChildrenWithTag("sword", false)[0];
-            glm::vec3 pos = sword.getLocalPosition();
-
-            //create tower
-            auto tower = jop::Engine::getCurrentScene().createChild("tower");
-            tower->setPosition(pos + glm::vec3(0.f, 1.f, 0.f));
-            tower->createComponent<Tower>();
-            auto& drawable = tower->createComponent<jop::GenericDrawable>(jop::Engine::getCurrentScene().getRenderer());
-            drawable.setModel(jop::Model(jop::Mesh::getDefault(), jop::ResourceManager::getExistingResource<jop::Material>("cubeMaterial")));
-
-            JOP_DEBUG_INFO("Tower Created.");
-            m_action = SELECT;
-            break;
-        }
-        default:
-            break;
-        }
-    }
-
-    void setAction(int a)
-    {
-        if (m_action == a)
-        {
-            m_action = SELECT;
-        }
-        else
-        {
-            m_action = static_cast<Action>(a);
-        }
-    }
-private:
-	//Interaction variables
-    Action m_action;
-    jop::WeakReference<jop::Object> m_selected;
-
-	//Game variables
-	int score;
-	int money;
-	int lives;
-	int level;
-};
+#include "GameController.h"
 
 //----- Event handler -----
 class GameEventHandler
@@ -174,7 +69,7 @@ public:
             }
 
             //debug mouse position
-            jop::Engine::getCurrentScene().findChild("DEBUG")->getComponent<jop::Text>()->setString("MPos: " + std::to_string(x) + ", " + std::to_string(y));
+            //jop::Engine::getCurrentScene().findChild("DEBUG")->getComponent<jop::Text>()->setString("MPos: " + std::to_string(x) + ", " + std::to_string(y));
         }
     }
 
@@ -273,18 +168,18 @@ public:
         cam2->setActive(true);
 
         //buttons
-        createButton(glm::vec2(420.0f, 200.0f), glm::vec2(-1.0f), "textures/button_bullet.png")->setMessage( "[Co] setAction 1");
-        createButton(glm::vec2(420.0f, 000.0f), glm::vec2(-1.0f), "textures/button_missile.png")->setMessage("[Co] setAction 2");;
-        createButton(glm::vec2(420.0f, -200.0f), glm::vec2(-1.0f), "textures/button_shield.png")->setMessage("[Co] setAction 0");;
+        createButton(glm::vec2(480.0f, 000.0f), glm::vec2(-1.0f), "textures/button_bullet.png")->setMessage( "[Co] setAction 1");
+        createButton(glm::vec2(480.0f, -120.0f), glm::vec2(-1.0f), "textures/button_missile.png")->setMessage("[Co] setAction 2");;
+        createButton(glm::vec2(480.0f, -240.0f), glm::vec2(-1.0f), "textures/button_shield.png")->setMessage("[Co] setAction 0");;
 
         //degug display
-        auto debugObject = createChild("DEBUG");
-        debugObject->setScale(800.0f, 800.0f, 1.0f);
-        jop::Text& text = debugObject->createComponent<jop::Text>(getRenderer());
-        text.setFont(jop::ResourceManager::getResource<jop::Font, std::string, int>(std::string("fonts/novem___.ttf"), 64));
-        text.setRenderGroup(1);
-        text.setString("Mouse Position: ");
-        text.setColor(jop::Color(0.0f, 0.9f, 0.0f, 1.0f));
+        //auto debugObject = createChild("DEBUG");
+        //debugObject->setScale(800.0f, 800.0f, 1.0f);
+        //jop::Text& text = debugObject->createComponent<jop::Text>(getRenderer());
+        //text.setFont(jop::ResourceManager::getResource<jop::Font, std::string, int>(std::string("fonts/novem___.ttf"), 64));
+        //text.setRenderGroup(1);
+        //text.setString("Mouse Position: ");
+        //text.setColor(jop::Color(0.0f, 0.9f, 0.0f, 1.0f));
         
         //jop::Engine::sendMessage("[Co] setAction 2");
     }
