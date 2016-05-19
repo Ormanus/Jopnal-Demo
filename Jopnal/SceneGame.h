@@ -10,6 +10,7 @@
 //#include "HUDComponent.h"
 #include "Enemy.h"
 #include "GameController.h"
+#include "SceneStart.h"
 
 //----- Event handler -----
 class GameEventHandler
@@ -168,9 +169,9 @@ public:
         cam2->setActive(true);
 
         //buttons
-        createButton(glm::vec2(480.0f, 000.0f), glm::vec2(-1.0f), "textures/button_bullet.png")->setMessage( "[Co] setAction 1");
-        createButton(glm::vec2(480.0f, -120.0f), glm::vec2(-1.0f), "textures/button_missile.png")->setMessage("[Co] setAction 2");;
-        createButton(glm::vec2(480.0f, -240.0f), glm::vec2(-1.0f), "textures/button_shield.png")->setMessage("[Co] setAction 0");;
+        createButton(glm::vec2(480.0f, 000.0f), glm::vec2(-1.0f), "textures/button_bullet.png", "textures/button_bullet_down.png")->setMessage("[Co] setAction 1");
+        createButton(glm::vec2(480.0f, -120.0f), glm::vec2(-1.0f), "textures/button_missile.png", "textures/button_missile_down.png")->setMessage("[Co] setAction 2");;
+        createButton(glm::vec2(480.0f, -240.0f), glm::vec2(-1.0f), "textures/button_shield.png", "textures/button_shield_down.png")->setMessage("[Co] setAction 0");;
 
         //degug display
         //auto debugObject = createChild("DEBUG");
@@ -248,6 +249,20 @@ public:
             createEnemy(10.f, 10.f, 0)->getComponent<Enemy>()->setPath(map->getComponent<MapComponent>()->getPath());
         }
     }
+
+    void postUpdate(float dt)override
+    {
+        if (m_gameover)
+        {
+            jop::Engine::createScene<SceneStart>();
+        }
+    }
+
+    void gameOver()
+    {
+        m_gameover = true;
+    }
+
 private:
     
     jop::WeakReference<jop::Object> createEnemy(float x, float y, int type)
@@ -258,13 +273,15 @@ private:
         return o;
     }
 
-    Button* createButton(glm::vec2 position, glm::vec2 size, std::string path)
+    Button* createButton(glm::vec2 position, glm::vec2 size, std::string path1, std::string path2)
     {
         auto o = findChild("orthoCam")->createChild("button");
-        o->createComponent<Button>(path);
+        o->createComponent<Button>(path1, path2);
         o->setPosition(glm::vec3(position.x, position.y, 1.0f)).setScale(glm::vec3(size.x, size.y, 1.0f));
         return o->getComponent<Button>();
     }
+
+    bool m_gameover;
 };
 
 #endif

@@ -2,7 +2,8 @@
 #define TOWER_H
 
 //#include <Jopnal/Jopnal.hpp>
-#include "Missile.h"
+#include "Ammo.h"
+#include "Enemy.h"
 
 class Tower : public jop::Component
 {
@@ -13,6 +14,7 @@ public:
         objRef.setScale(0.75f, 2.0f, 0.75f);
         m_timer = 0.0f;
         m_rof = 1.0f;
+        m_targetingType = 2;
         findTarget();
     };
 
@@ -37,30 +39,94 @@ public:
         m_timer -= dt;
         if (m_timer < 0.f)
         {
+            m_timer = m_rof;
 			act();
         }
     }
 
     void findTarget()
     {
-        //glm::vec3 pos = getObject()->getGlobalPosition();
+        switch (m_targetingType)
+        {
+        case 0: //closest
+        {
+            glm::vec3 pos = getObject()->getGlobalPosition();
 
-        //float dist = FLT_MAX;
+            float dist = FLT_MAX;
 
-        //for (auto target : getObject()->getParent()->findChildrenWithTag("target", false))
-        //{
-        //    glm::vec3 delta = pos - target->getGlobalPosition();
-        //    float d = glm::length(delta);
-        //    if (d < dist)
-        //    {
-        //        m_target = target;
-        //        JOP_DEBUG_INFO("Target reset.");
-        //        dist = d;
-        //    }
-        //}
-        std::vector<jop::WeakReference<jop::Object>> targets = getObject()->getParent()->findChildrenWithTag("target", false);
-        if (targets.size() > 0)
-            m_target = targets[rand() % (targets.size())];
+            for (auto target : getObject()->getParent()->findChildrenWithTag("target", false))
+            {
+                glm::vec3 delta = pos - target->getGlobalPosition();
+                float d = glm::length(delta);
+                if (d < dist)
+                {
+                    m_target = target;
+                    JOP_DEBUG_INFO("Target reset to closest.");
+                    dist = d;
+                }
+            }
+            break;
+        }
+        case 1: //strongest
+        {
+            float hp = 0;
+
+            for (auto target : getObject()->getParent()->findChildrenWithTag("target", false))
+            {
+                if (target->getComponent<Enemy>()->getHealth() > hp)
+                {
+                    m_target = target;
+                    JOP_DEBUG_INFO("Target reset to strongest.");
+                    hp = target->getComponent<Enemy>()->getHealth();
+                }
+            }
+            break;
+        }
+        case 2: //first
+        {
+            float dist = 0;
+
+            for (auto target : getObject()->getParent()->findChildrenWithTag("target", false))
+            {
+                float d = target->getComponent<Enemy>()->getDistanceFromHome();
+                if (d > dist)
+                {
+                    m_target = target;
+                    JOP_DEBUG_INFO("Target reset to first.");
+                    dist = d;
+                }
+            }
+            break;
+        }
+        case 3: //last
+        {
+            float dist = FLT_MAX;
+
+            for (auto target : getObject()->getParent()->findChildrenWithTag("target", false))
+            {
+                float d = target->getComponent<Enemy>()->getDistanceFromHome();
+                if (d < dist)
+                {
+                    m_target = target;
+                    JOP_DEBUG_INFO("Target reset to last.");
+                    dist = d;
+                }
+            }
+            break;
+        }
+        case 4: //random
+        {
+            std::vector<jop::WeakReference<jop::Object>> targets = getObject()->getParent()->findChildrenWithTag("target", false);
+            if (targets.size() > 0)
+                m_target = targets[rand() % (targets.size())];
+            JOP_DEBUG_INFO("Target reset to random.");
+            break;
+        }  
+        default:
+            break;
+        }
+        
+        
     }
 
 	virtual void act()
@@ -74,10 +140,6 @@ public:
 			auto& component = missile->createComponent<Missile>();
 			component.setTarget(m_target);
 			component.setVelocity(glm::vec3(0.f, 15.f, 0.f));
-
-			missile->createComponent<jop::GenericDrawable>(o->getScene().getRenderer());
-			auto drawable = missile->getComponent<jop::GenericDrawable>();
-			drawable->setModel(jop::Model(jop::Mesh::getDefault(), jop::ResourceManager::getExistingResource<jop::Material>("bulletMaterial")));
 
 			JOP_DEBUG_INFO("Missile Created");
 
@@ -97,6 +159,7 @@ protected:
     jop::WeakReference<jop::Object> m_target;
     float m_timer;
     float m_rof;
+    int m_targetingType;
 };
 
 //TODO: bullet tower, AoE tower, shield, machine gun tower, laser tower...

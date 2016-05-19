@@ -24,15 +24,18 @@
     <ClCompile Include="HUDComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Missile.cpp">
+    <ClCompile Include="Ammo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Enemy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GameController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SceneStart.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Missile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SceneGame.h">
@@ -51,6 +54,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GameController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ammo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

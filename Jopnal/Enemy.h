@@ -5,6 +5,7 @@
 
 class SceneStart;
 
+
 class Enemy : public jop::Component
 {
 public:
@@ -18,7 +19,7 @@ public:
         drawable->setModel(jop::Model(jop::Mesh::getDefault(), jop::ResourceManager::getExistingResource<jop::Material>("bulletMaterial")));
 
         m_health = 100.f;
-        m_speed = 10.f;
+        m_speed = 100.f;
         m_currentWaypoint = 0;
 
 		m_reward = 10;
@@ -32,44 +33,15 @@ public:
 
     JOP_GENERIC_COMPONENT_CLONE(Enemy);
 
-    void setPath(const std::vector<glm::vec3>& path)
-    {
-		m_path = path;
-        //m_waypoints = waypoints;
-        //m_maxWaypoint = n_waypoints-1;
-        int m_currentWaypoint = 0;
-    }
+    void setPath(const std::vector<glm::vec3>& path);
 
-    void update(float dt)override
-    {
-        if (m_path.size() > 0)
-        {
-            //move
-            jop::Object& o = getObject();
-            glm::vec3 delta = -o.getGlobalPosition() + m_path[m_currentWaypoint];
+    void update(float dt)override;
 
-            float dist = glm::length(delta);
-            delta /= dist;
+	int getReward() { return m_reward; }
 
-            if (dist < 1.f)
-            {
-                m_currentWaypoint++;
-                if (m_currentWaypoint >= m_path.size())
-                {
-                    //game over
-                }
-            }
-            else
-            {
-                o.move(delta * m_speed * dt);
-            }
-        }
-    }
+    float getHealth() { return m_health; }
 
-	int getReward()
-	{
-		return m_reward;
-	}
+    float getDistanceFromHome();
 
 private:
     float m_health;

@@ -88,16 +88,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="GameController.cpp" />
     <ClCompile Include="HUDComponent.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Missile.cpp" />
+    <ClCompile Include="Ammo.cpp" />
     <ClCompile Include="SceneGame.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="GameController.h" />
     <ClInclude Include="HUDComponent.h" />
-    <ClInclude Include="Missile.h" />
+    <ClInclude Include="Ammo.h" />
     <ClInclude Include="SceneGame.h" />
     <ClInclude Include="SceneStart.h" />
     <ClInclude Include="MapComponent.h" />
