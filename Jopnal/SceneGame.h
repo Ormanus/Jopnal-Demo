@@ -133,13 +133,20 @@ public:
 		mapComp.generateLevel(&this->getAsObject(), levelScale);
 		mapComp.generatePath(levelScale);
 
+        using A = jop::Material::Attribute;
+
         //cube material
-        auto& material = jop::ResourceManager::getEmptyResource<jop::Material>("cubeMaterial", jop::Material::Attribute::DefaultLighting);
+        auto& material = jop::ResourceManager::getEmptyResource<jop::Material>("cubeMaterial", A::DefaultLighting);
         material.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Pixel.png", true));
 
         //ammo material
-        auto& material2 = jop::ResourceManager::getEmptyResource<jop::Material>("bulletMaterial", jop::Material::Attribute::DefaultLighting);
+        auto& material2 = jop::ResourceManager::getEmptyResource<jop::Material>("bulletMaterial", A::DiffuseMap);
         material2.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Bullet.png", true));
+        
+        //force field material
+        auto& ffMat = jop::ResourceManager::getEmptyResource<jop::Material>("ffMaterial", A::DefaultLighting | A::DiffuseAlpha);
+        ffMat.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/FFTexture.png", true));
+        //ffMat.setMap(jop::Material::Map::Opacity, jop::ResourceManager::getResource<jop::Texture2D>("textures/FFOpacity.png", true));
 
         //sword
         m_object = createChild("sword");
@@ -169,9 +176,9 @@ public:
         cam2->setActive(true);
 
         //buttons
-        createButton(glm::vec2(480.0f, 000.0f), glm::vec2(-1.0f), "textures/button_bullet.png", "textures/button_bullet_down.png")->setMessage("[Co] setAction 1");
-        createButton(glm::vec2(480.0f, -120.0f), glm::vec2(-1.0f), "textures/button_missile.png", "textures/button_missile_down.png")->setMessage("[Co] setAction 2");;
-        createButton(glm::vec2(480.0f, -240.0f), glm::vec2(-1.0f), "textures/button_shield.png", "textures/button_shield_down.png")->setMessage("[Co] setAction 0");;
+        createButton(glm::vec2(480.0f, 000.0f), glm::vec2(-1.0f), "textures/button_bullet.png", "textures/button_bullet_down.png")->setMessage(0, "1");
+        createButton(glm::vec2(480.0f, -120.0f), glm::vec2(-1.0f), "textures/button_missile.png", "textures/button_missile_down.png")->setMessage(0, "2");;
+        createButton(glm::vec2(480.0f, -240.0f), glm::vec2(-1.0f), "textures/button_shield.png", "textures/button_shield_down.png")->setMessage(0, "3");;
 
         //degug display
         //auto debugObject = createChild("DEBUG");
@@ -250,7 +257,7 @@ public:
         }
     }
 
-    void postUpdate(float dt)override
+    void postUpdate(const float dt)override
     {
         if (m_gameover)
         {

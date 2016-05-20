@@ -42,7 +42,9 @@ void Ammo::setTarget(jop::WeakReference<jop::Object> o)
     m_target = o;
 }
 
-void Missile::update(float dt)
+//// MISSILE ////
+
+void Missile::update(const float dt)
 {
     Ammo::update(dt);
 
@@ -80,8 +82,8 @@ void Missile::update(float dt)
 		}
 		if (l < 1.0f)
 		{
-			o->getScene().findChild("GC")->getComponent<GameController>()->addMoney(m_target->getComponent<Enemy>()->getReward());
-			m_target->removeSelf();
+            auto enemy = m_target->getComponent<Enemy>();
+            enemy->setHealth(enemy->getHealth() - (500.f - l));
 			o->removeSelf();
 		}
 	}
@@ -91,17 +93,86 @@ void Missile::update(float dt)
 		//o->rotate(dt * 2.0f, dt * 2.0f, dt * 2.0f);
 		//getObject()->removeSelf();
 	}
-	o->move(m_velocity * 10.f * dt * m_speed);
+	o->move(m_velocity * dt * m_speed);
 }
 
 void Missile::init()
 {
     Ammo::init();
 
-    m_speed = 10.f;
+    m_speed = 50.f;
     m_tot_time = 0.0f;
     m_velocity = glm::vec3(0.f, 1.f, 0.f);
 
     getObject()->setScale(0.75f, 0.75f, 2.0f);
     getObject()->setRotation(3.14159f / 2.f, 0.0f, 0.0f);
+}
+
+//// BULLET ////
+
+void Bullet::init()
+{
+    Ammo::init();
+
+    m_speed = 20.f;
+    m_tot_time = 0.0f;
+    m_velocity = glm::vec3(0.0f);
+    m_timer = 0.5f;
+
+    getObject()->setScale(0.75f, 0.75f, 2.0f);
+    getObject()->setRotation(3.14159f / 2.f, 0.0f, 0.0f);
+}
+
+void Bullet::setTarget(jop::WeakReference<jop::Object> o)
+{
+    m_target = o;
+    setVelocity(glm::normalize(o->getGlobalPosition() - getObject()->getGlobalPosition()) * 10.f);
+}
+
+void Bullet::update(const float dt)
+{
+    Ammo::update(dt);
+    auto o = getObject();
+
+    glm::vec3 pos1 = o->getGlobalPosition();
+    o->move(m_velocity * dt * m_speed);
+    glm::vec3 pos2 = o->getGlobalPosition();
+
+    if (!m_target.expired())
+    {
+        glm::vec3 pos3 = m_target->getGlobalPosition();
+
+        //float d = glm::length(glm::cross((pos3 - pos1), (pos3 - pos2))) / glm::length(pos2 - pos1);
+
+        float d;
+
+        glm::vec3 v = pos2 - pos1;
+        glm::vec3 w = pos3 - pos1;
+
+        float c1 = glm::dot(w, v);
+        float c2 = glm::dot(v, v);
+        if (c1 <= 0)
+        {
+            d = glm::length(pos3 - pos1);
+        }
+        else if (c2 <= c1)
+        {
+            d = glm::length(pos3 - pos2);
+        }
+        else
+        {
+            float b = c1 / c2;
+            glm::vec3 Pb = pos1 + b*v;
+            d = glm::length(pos3 - Pb);
+        }
+        /*glm::vec3 delta = m_target->getGlobalPosition() - o->getGlobalPosition();
+        float l = glm::length(delta);*/
+        if (d < 1.0f)
+        {
+            auto enemy = m_target->getComponent<Enemy>();
+            enemy->setHealth(enemy->getHealth() - 5.f);
+            o->removeSelf();
+            return;
+        }
+    }
 }

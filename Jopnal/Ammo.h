@@ -11,13 +11,13 @@ class Ammo : public jop::Component
 public:
 
     Ammo(jop::Object& objRef)
-        : jop::Component(objRef, "ammo"),
+        : jop::Component(objRef, 0),
         m_timer(10.0f)
     {
     };
 
     Ammo(const Ammo& misRef, jop::Object& objRef)
-        : jop::Component(objRef, "ammo"),
+        : jop::Component(objRef, 0),
         m_timer(10.0f)
     {
     };
@@ -38,6 +38,8 @@ protected:
     float m_speed;
     float m_tot_time;
 };
+
+////  MISSILE CLASS  ////
 
 class Missile : public Ammo
 {
@@ -65,6 +67,29 @@ public:
 
 ////  BULLET CLASS  ////
 
-//TODO: redo! :P
+class Bullet : public Ammo
+{
+public:
+
+    Bullet(jop::Object& objRef)
+        : Ammo(objRef)
+    {
+        init();
+    };
+
+    Bullet(const Bullet& misRef, jop::Object& objRef)
+        : Ammo(objRef)
+    {
+        init();
+    };
+
+    JOP_GENERIC_COMPONENT_CLONE(Bullet);
+
+    void setTarget(jop::WeakReference<jop::Object> o)override;
+
+    void update(const float dt) override;
+
+    void init()override;
+};
 
 #endif

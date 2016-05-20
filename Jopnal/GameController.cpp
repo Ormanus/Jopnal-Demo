@@ -1,6 +1,43 @@
 #include "GameController.h"
 #include "SceneStart.h"
 
+void GameController::init()
+{
+    //HUD
+    auto o = getObject();
+
+    glm::vec2 winsize = jop::Engine::getSubsystem<jop::Window>()->getSize();
+
+    createText("Money", winsize.x / 2.f - 200.f, winsize.y / 2.f - 50.f, "Money: ");
+    createText("Lives", winsize.x / 2.f - 200.f, winsize.y / 2.f - 100.f, "Lives: ");
+    createText("Score", winsize.x / 2.f - 200.f, winsize.y / 2.f - 150.f, "Score: ");
+
+    setMoney(500);
+    setScore(0);
+    setLives(10);
+}
+
+void GameController::action(const int type, const std::string& value)
+{
+    switch (type)
+    {
+    case 0:
+    {
+        Action a = static_cast<Action>(std::stoi(value));
+        if (m_action == a)
+        {
+            m_action = SELECT;
+        }
+        else
+        {
+            m_action = a;
+        }
+        break;
+    }
+    }
+    
+}
+
 jop::Text& GameController::createText(std::string id, float x, float y, std::string text)
 {
     auto textObject = getObject()->createChild(id);
@@ -54,8 +91,29 @@ void GameController::mouseLeft()
     }
     case BULLET_TOWER:
     {
-        m_action = SELECT;
-        JOP_DEBUG_INFO("Bullet tower created");
+
+        if (m_money >= 50)
+        {
+            addMoney(-50);
+            if (jop::Engine::getCurrentScene().findChildrenWithTag("sword", false).empty())
+            {
+                JOP_DEBUG_INFO("404 Sword not found.");
+                return;
+            }
+
+            auto& sword = *jop::Engine::getCurrentScene().findChildrenWithTag("sword", false)[0];
+            glm::vec3 pos = sword.getLocalPosition();
+
+            //create tower
+            auto tower = jop::Engine::getCurrentScene().createChild("bullet_tower");
+            tower->setPosition(pos + glm::vec3(0.f, 1.f, 0.f));
+            tower->createComponent<BulletTower>();
+
+            JOP_DEBUG_INFO("Bullet tower Created.");
+        }
+        //else, show message "Not enough money!"
+        //"purchase more in-game money from the website..."
+        action(0, "0");
         break;
     }
     case MISSILE_TOWER:
@@ -75,17 +133,37 @@ void GameController::mouseLeft()
             //create tower
             auto tower = jop::Engine::getCurrentScene().createChild("tower");
             tower->setPosition(pos + glm::vec3(0.f, 1.f, 0.f));
-            tower->createComponent<Tower>();
-            auto& drawable = tower->createComponent<jop::GenericDrawable>(jop::Engine::getCurrentScene().getRenderer());
-            drawable.setModel(jop::Model(jop::Mesh::getDefault(), jop::ResourceManager::getExistingResource<jop::Material>("cubeMaterial")));
+            tower->createComponent<MissileTower>();
 
             JOP_DEBUG_INFO("Tower Created.");
         }
         //else, show message "Not enough money!"
         //"purchase more in-game money from the website..."
-        m_action = SELECT;
+        action(0, "0");
         break;
     }
+    case FF_TOWER:
+        if (m_money >= 200)
+        {
+            addMoney(-200);
+            if (jop::Engine::getCurrentScene().findChildrenWithTag("sword", false).empty())
+            {
+                JOP_DEBUG_INFO("404 Sword not found.");
+                return;
+            }
+
+            auto& sword = *jop::Engine::getCurrentScene().findChildrenWithTag("sword", false)[0];
+            glm::vec3 pos = sword.getLocalPosition();
+
+            //create tower
+            auto tower = jop::Engine::getCurrentScene().createChild("ff_tower");
+            tower->setPosition(pos + glm::vec3(0.f, 1.f, 0.f));
+            tower->createComponent<FFTower>();
+
+            JOP_DEBUG_INFO("Forcefield Created.");
+        }
+        action(0, "0");
+        break;
     default:
         break;
     }

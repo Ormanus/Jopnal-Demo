@@ -8,13 +8,13 @@ class UIComponent : public jop::Component
 public:
 
     UIComponent(jop::Object& objRef, const std::string textureUp)
-		: jop::Component(objRef, "name")
+		: jop::Component(objRef, 0)
 	{
         init(textureUp);
 	};
 
 	UIComponent(const UIComponent& misRef, jop::Object& objRef)
-		: jop::Component(objRef, "name")
+		: jop::Component(objRef, 0)
 	{
 	};
 
@@ -46,8 +46,9 @@ public:
         initMaterials(textureUp, textureDown);
 	}
 
-	void setMessage(std::string m)
+    void setMessage(int i, std::string m)
 	{
+        m_messageType = i;
 		m_message = m;
 	}
 
@@ -65,6 +66,8 @@ public:
     }
 
     bool click();
+
+    void setPressed(bool pressed){ m_pressed = pressed; }
 
 	void mouseMove(const float mouseX, const float mouseY)
 	{
@@ -100,9 +103,11 @@ private:
     std::string m_textureUp;
     std::string m_textureDown;
 
+    int m_messageType;
 	std::string m_message;
 	glm::vec2 size;
 	bool m_hover;
+    bool m_pressed;
 };
 
 #endif

@@ -1,6 +1,23 @@
 #include "Enemy.h"
 #include "GameController.h"
 
+void Enemy::init()
+{
+    auto o = getObject();
+    o->addTag("target");
+
+    //drawable
+    auto& drawable = o->createComponent<jop::GenericDrawable>(getObject()->getScene().getRenderer());
+    drawable.setModel(jop::Model(jop::Mesh::getDefault(), jop::ResourceManager::getExistingResource<jop::Material>("cubeMaterial")));
+
+    setHealth(100.f);
+    m_speed = 5.f;
+    m_currentWaypoint = 0;
+
+    m_reward = 10;
+    //m_maxWaypoint = -1;
+}
+
 void Enemy::setPath(const std::vector<glm::vec3>& path)
 {
     m_path = path;
@@ -44,4 +61,16 @@ float Enemy::getDistanceFromHome()
         delta = getObject()->getGlobalPosition() - m_path[m_currentWaypoint];
     dist += delta.x*delta.x + delta.y*delta.y;
     return dist;
+}
+
+void Enemy::setHealth(float hp)
+{ 
+    m_health = hp; 
+    if (m_health < 0.f)
+    {
+        getObject()->getScene().findChild("GC")->getComponent<GameController>()->addMoney(getReward());
+        getObject()->removeSelf();
+    }
+
+    getObject()->setScale((m_health * 2.f / 100.f) + 0.25f);
 }

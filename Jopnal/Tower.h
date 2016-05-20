@@ -9,25 +9,33 @@ class Tower : public jop::Component
 {
 public:
     Tower(jop::Object& objRef)
-        : jop::Component(objRef, "name")
+        : jop::Component(objRef, 0)
     {
-        objRef.setScale(0.75f, 2.0f, 0.75f);
-        m_timer = 0.0f;
-        m_rof = 1.0f;
-        m_targetingType = 2;
-        findTarget();
+        init();
     };
 
-    Tower(const Tower& misRef, jop::Object& objRef)
-        : jop::Component(objRef, "name")
+    //Tower(const Tower& misRef, jop::Object& objRef)
+    //    : jop::Component(objRef, "name")
+    //{
+    //    init();
+    //};
+
+    //JOP_GENERIC_COMPONENT_CLONE(Tower);
+    JOP_DISALLOW_COPY(Tower);
+
+    virtual void init()
     {
-        objRef.setScale(0.75f, 0.75f, 2.0f);
+        auto o = getObject();
+
+        //rigid body
+        auto& box = o->createComponent<jop::RigidBody>(o->getScene().getWorld(), jop::RigidBody::ConstructInfo(jop::ResourceManager::getNamedResource<jop::BoxShape>("shape", glm::vec3(0.75f, 2.f, 0.75f))));
+        
         m_timer = 0.0f;
         m_rof = 1.0f;
+        m_range = 10000.f;
+        m_targetingType = 0;
         findTarget();
-    };
-
-    JOP_GENERIC_COMPONENT_CLONE(Tower);
+    }
 
     void setTarget(jop::WeakReference<jop::Object> o)
     {
@@ -58,10 +66,9 @@ public:
             {
                 glm::vec3 delta = pos - target->getGlobalPosition();
                 float d = glm::length(delta);
-                if (d < dist)
+                if (d < dist && d < m_range)
                 {
                     m_target = target;
-                    JOP_DEBUG_INFO("Target reset to closest.");
                     dist = d;
                 }
             }
@@ -73,10 +80,11 @@ public:
 
             for (auto target : getObject()->getParent()->findChildrenWithTag("target", false))
             {
-                if (target->getComponent<Enemy>()->getHealth() > hp)
+                glm::vec3 delta = getObject()->getGlobalPosition() - target->getGlobalPosition();
+                float d = glm::length(delta);
+                if (target->getComponent<Enemy>()->getHealth() > hp && d < m_range)
                 {
                     m_target = target;
-                    JOP_DEBUG_INFO("Target reset to strongest.");
                     hp = target->getComponent<Enemy>()->getHealth();
                 }
             }
@@ -88,11 +96,12 @@ public:
 
             for (auto target : getObject()->getParent()->findChildrenWithTag("target", false))
             {
+                glm::vec3 delta = getObject()->getGlobalPosition() - target->getGlobalPosition();
+                float l = glm::length(delta);
                 float d = target->getComponent<Enemy>()->getDistanceFromHome();
-                if (d > dist)
+                if (d > dist && l < m_range)
                 {
                     m_target = target;
-                    JOP_DEBUG_INFO("Target reset to first.");
                     dist = d;
                 }
             }
@@ -105,10 +114,11 @@ public:
             for (auto target : getObject()->getParent()->findChildrenWithTag("target", false))
             {
                 float d = target->getComponent<Enemy>()->getDistanceFromHome();
-                if (d < dist)
+                glm::vec3 delta = getObject()->getGlobalPosition() - target->getGlobalPosition();
+                float l = glm::length(delta);
+                if (d < dist && l < m_range)
                 {
                     m_target = target;
-                    JOP_DEBUG_INFO("Target reset to last.");
                     dist = d;
                 }
             }
@@ -129,43 +139,187 @@ public:
         
     }
 
-	virtual void act()
-	{
-		auto o = getObject();
-		if (m_target.get() != nullptr && !m_target.expired())
-		{
-			auto missile = o->getScene().createChild("Missile");
-			missile->setPosition(o->getLocalPosition());
-
-			auto& component = missile->createComponent<Missile>();
-			component.setTarget(m_target);
-			component.setVelocity(glm::vec3(0.f, 15.f, 0.f));
-
-			JOP_DEBUG_INFO("Missile Created");
-
-			m_timer = m_rof;
-		}
-		else
-		{
-			JOP_DEBUG_INFO("Finding targets...");
-
-			findTarget();
-
-			m_timer = m_rof * 2.f;
-		}
-	}
+    virtual void act() = 0;
 
 protected:
     jop::WeakReference<jop::Object> m_target;
     float m_timer;
     float m_rof;
+    float m_range;
     int m_targetingType;
 };
 
 //TODO: bullet tower, AoE tower, shield, machine gun tower, laser tower...
 // production tower?
 
-//TODO: make towers upgradeable
-// = no constant valiues, everytinhg can be modified!
+//// MISSILE TOWER ////
+
+class MissileTower : public Tower
+{
+public:
+    MissileTower(jop::Object& objRef)
+        : Tower(objRef)
+    {
+        init();
+    };
+
+    MissileTower(const MissileTower& misRef, jop::Object& objRef)
+        : Tower(objRef)
+    {
+        init();
+    };
+
+    JOP_GENERIC_COMPONENT_CLONE(MissileTower);
+
+    void init()override
+    {
+        Tower::init();
+        m_timer = 0.0f;
+        m_rof = 2.0f;
+        m_targetingType = 2;
+        m_range = 1000.f;
+
+        auto o = getObject();
+        auto& drawable = o->createComponent<jop::GenericDrawable>(jop::Engine::getCurrentScene().getRenderer());
+        drawable.setModel(jop::Model(jop::Mesh::getDefault(), jop::ResourceManager::getExistingResource<jop::Material>("cubeMaterial")));
+        o->setScale(0.75f, 2.0f, 0.75f);
+    }
+
+    void act()override
+    {
+        auto o = getObject();
+        if (m_target.get() != nullptr && !m_target.expired())
+        {
+            auto missile = o->getScene().createChild("Missile");
+            missile->setPosition(o->getLocalPosition());
+
+            auto& component = missile->createComponent<Missile>();
+            component.setTarget(m_target);
+            component.setVelocity(glm::vec3(0.f, 15.f, 0.f));
+            m_timer = m_rof;
+        }
+        else
+        {
+            findTarget();
+            m_timer = m_rof * 2.f;
+        }
+    }
+};
+
+//// BULLET TOWER ////
+
+class BulletTower : public Tower
+{
+public:
+    BulletTower(jop::Object& objRef)
+        : Tower(objRef)
+    {
+        init();
+    };
+
+    BulletTower(const BulletTower& misRef, jop::Object& objRef)
+        : Tower(objRef)
+    {
+        init();
+    };
+
+    JOP_GENERIC_COMPONENT_CLONE(BulletTower);
+
+    void init()override
+    {
+        Tower::init();
+        m_timer = 0.0f;
+        m_rof = 0.25f;
+        m_targetingType = 0;
+        m_range = 50.f;
+
+        auto o = getObject();
+        auto& drawable = o->createComponent<jop::GenericDrawable>(jop::Engine::getCurrentScene().getRenderer());
+        drawable.setModel(jop::Model(jop::Mesh::getDefault(), jop::ResourceManager::getExistingResource<jop::Material>("cubeMaterial")));
+        o->setScale(0.75f, 2.0f, 0.75f);
+    }
+
+    void act()override
+    {
+        auto o = getObject();
+        if (m_target.get() != nullptr && !m_target.expired())
+        {
+            glm::vec3 delta = getObject()->getGlobalPosition() - m_target->getGlobalPosition();
+            float d = glm::length(delta);
+            if (d < m_range)
+            {
+                auto missile = o->getScene().createChild("Missile");
+                missile->setPosition(o->getLocalPosition());
+
+                auto& component = missile->createComponent<Bullet>();
+                component.setTarget(m_target);
+                m_timer = m_rof;
+                findTarget();
+
+                return;
+            }
+        }
+        findTarget();
+        m_timer = m_rof * 2.f;
+    }
+};
+
+//// FORCE FIELD TOWER ////
+
+class FFTower : public Tower
+{
+public:
+    FFTower(jop::Object& objRef)
+        : Tower(objRef)
+    {
+        init();
+    };
+
+    FFTower(const FFTower& misRef, jop::Object& objRef)
+        : Tower(objRef)
+    {
+        init();
+    };
+
+    JOP_GENERIC_COMPONENT_CLONE(FFTower);
+
+    void init()override
+    {
+        Tower::init();
+
+        auto o2 = getObject()->createChild("center");
+        auto& drawable2 = o2->createComponent<jop::GenericDrawable>(jop::Engine::getCurrentScene().getRenderer());
+        drawable2.setModel(jop::Model(jop::Mesh::getDefault(), jop::ResourceManager::getExistingResource<jop::Material>("cubeMaterial")));
+        o2->setScale(0.75f, 2.0f, 0.75f);
+
+        //add ff model
+        auto o = getObject();
+        auto& drawable = o->createComponent<jop::GenericDrawable>(o->getScene().getRenderer());
+        drawable.setModel(jop::Model(jop::ResourceManager::getNamedResource<jop::SphereMesh>("ff", 10.f, 32.f, 32.f), jop::ResourceManager::getExistingResource<jop::Material>("ffMaterial")));
+
+        m_timer = 0.0f;
+        m_rof = 0.1f;
+        m_targetingType = 0;
+        m_range = 10.f;
+    }
+
+    void act()override
+    {
+        auto o = getObject();
+        glm::vec3 pos = getObject()->getGlobalPosition();
+
+        for (auto target : getObject()->getParent()->findChildrenWithTag("target", false))
+        {
+            glm::vec3 delta = o->getGlobalPosition() - target->getGlobalPosition();
+            if (glm::length(delta) < m_range)
+            {
+                auto enemy = target->getComponent<Enemy>();
+                enemy->setHealth(enemy->getHealth() - 2.5f);
+            }
+        }
+
+        m_timer = m_rof;
+    }
+};
 
 #endif

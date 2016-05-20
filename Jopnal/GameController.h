@@ -10,6 +10,7 @@ enum Action
 	SELECT,
 	BULLET_TOWER,
 	MISSILE_TOWER,
+    FF_TOWER,
 };
 
 //----- The Master Component -----
@@ -17,49 +18,25 @@ class GameController : public jop::Component
 {
 public:
 	GameController(jop::Object& objRef)
-		: jop::Component(objRef, "GC"),
+		: jop::Component(objRef, 1),
 		m_action(SELECT)
 	{
 		init();
 	};
 
 	GameController(const GameController& misRef, jop::Object& objRef)
-		: jop::Component(objRef, "GC")
+		: jop::Component(objRef, 1)
 	{
 		init();
 	};
 
 	JOP_GENERIC_COMPONENT_CLONE(GameController);
 
-	void init()
-	{
-		//HUD
-		auto o = getObject();
-
-		glm::vec2 winsize = jop::Engine::getSubsystem<jop::Window>()->getSize();
-
-		createText("Money", winsize.x / 2.f - 200.f, winsize.y / 2.f - 50.f, "Money: ");
-		createText("Lives", winsize.x / 2.f - 200.f, winsize.y / 2.f - 100.f, "Lives: ");
-		createText("Score", winsize.x / 2.f - 200.f, winsize.y / 2.f - 150.f, "Score: ");
-
-		setMoney(500);
-		setScore(0);
-        setLives(10);
-	}
+    void init();
 
     void mouseLeft();
 
-	void setAction(int a)
-	{
-		if (m_action == a)
-		{
-			m_action = SELECT;
-		}
-		else
-		{
-			m_action = static_cast<Action>(a);
-		}
-	}
+    void action(const int a, const std::string& value);
 
 	int getMoney()
 	{

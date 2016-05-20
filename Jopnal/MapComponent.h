@@ -9,12 +9,12 @@ class MapComponent : public jop::Component
 public:
 
 	MapComponent(jop::Object& objRef)
-		: jop::Component(objRef, "name")
+		: jop::Component(objRef, 0)
 	{
 	};
 
 	MapComponent(const MapComponent& misRef, jop::Object& objRef)
-		: jop::Component(objRef, "name")
+		: jop::Component(objRef, 0)
 	{
 	};
 
