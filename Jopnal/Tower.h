@@ -4,6 +4,7 @@
 //#include <Jopnal/Jopnal.hpp>
 #include "Ammo.h"
 #include "Enemy.h"
+#include "ShieldDrawable.h"
 
 class Tower : public jop::Component
 {
@@ -294,7 +295,7 @@ public:
 
         //add ff model
         auto o = getObject();
-        auto& drawable = o->createComponent<jop::GenericDrawable>(o->getScene().getRenderer());
+        auto& drawable = o->createComponent<ShieldDrawable>(o->getScene().getRenderer());
         drawable.setModel(jop::Model(jop::ResourceManager::getNamedResource<jop::SphereMesh>("ff", 10.f, 32.f, 32.f), jop::ResourceManager::getExistingResource<jop::Material>("ffMaterial")));
 
         m_timer = 0.0f;

@@ -59,5 +59,8 @@
     <ClInclude Include="Ammo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ShieldDrawable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

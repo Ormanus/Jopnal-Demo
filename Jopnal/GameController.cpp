@@ -66,26 +66,25 @@ void GameController::setLives(int amount)
 
 void GameController::mouseLeft()
 {
+    //try to click buttons
+
+    for (auto object : getObject()->getScene().findChildrenWithTag("HUD", true))
+    {
+        auto button = object->getComponent<Button>();
+        if (button != nullptr)
+        {
+            if (button->click())
+            {
+                //"collision" found, don't click other buttons or select (or place!) towers
+                return;
+            }
+        }
+    }
+
     switch (m_action)
     {
     case SELECT:
     {
-        //try to click buttons
-
-        for (auto object : getObject()->getScene().findChildrenWithTag("HUD", true))
-        {
-            auto button = object->getComponent<Button>();
-            if (button != nullptr)
-            {
-                if (button->click())
-                {
-                    //"collision" found, don't click other buttons or select towers
-                    return;
-                }
-            }
-        }
-
-        //else
         //TODO: select tower
         break;
     }
@@ -113,6 +112,10 @@ void GameController::mouseLeft()
         }
         //else, show message "Not enough money!"
         //"purchase more in-game money from the website..."
+        for (auto button : getObject()->getScene().findChildren("button", true, false))
+        {
+            button->getComponent<Button>()->setPressed(false);
+        }
         action(0, "0");
         break;
     }
@@ -140,6 +143,10 @@ void GameController::mouseLeft()
         //else, show message "Not enough money!"
         //"purchase more in-game money from the website..."
         action(0, "0");
+        for (auto button : getObject()->getScene().findChildren("button", true, false))
+        {
+            button->getComponent<Button>()->setPressed(false);
+        }
         break;
     }
     case FF_TOWER:
@@ -163,6 +170,10 @@ void GameController::mouseLeft()
             JOP_DEBUG_INFO("Forcefield Created.");
         }
         action(0, "0");
+        for (auto button : getObject()->getScene().findChildren("button", true, false))
+        {
+            button->getComponent<Button>()->setPressed(false);
+        }
         break;
     default:
         break;

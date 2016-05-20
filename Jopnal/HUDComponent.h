@@ -37,13 +37,14 @@ public:
 class Button : public UIComponent
 {
 public:
-    Button(jop::Object& objRef, const std::string textureUp, const std::string textureDown)
+    Button(jop::Object& objRef, const std::string textureUp, const std::string textureDown, const std::string textureHover)
 		: UIComponent(objRef, textureUp)
 	{
 		m_hover = false;
+        m_pressed = false;
         m_message = "";
         size = glm::vec2(100.f);
-        initMaterials(textureUp, textureDown);
+        initMaterials(textureUp, textureDown, textureHover);
 	}
 
     void setMessage(int i, std::string m)
@@ -52,7 +53,7 @@ public:
 		m_message = m;
 	}
 
-    void initMaterials(std::string TextureUp, std::string TextureDown)
+    void initMaterials(std::string TextureUp, std::string TextureDown, std::string TextureHover)
     {
         auto& material1 = jop::ResourceManager::getEmptyResource<jop::Material>(TextureUp, jop::Material::Attribute::Default);
         material1.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>(TextureUp, true));
@@ -60,14 +61,31 @@ public:
         auto& material2 = jop::ResourceManager::getEmptyResource<jop::Material>(TextureDown, jop::Material::Attribute::Default);
         material2.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>(TextureDown, true));
 
+        auto& material3 = jop::ResourceManager::getEmptyResource<jop::Material>(TextureHover, jop::Material::Attribute::Default);
+        material3.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>(TextureHover, true));
+
         m_textureDown = TextureDown;
         m_textureUp = TextureUp;
-
+        m_textureHover = TextureHover;
     }
 
     bool click();
 
-    void setPressed(bool pressed){ m_pressed = pressed; }
+    void setPressed(bool pressed)
+    {
+        if (m_pressed != pressed)
+        {
+            if (pressed)
+            {
+                getObject()->getComponent<jop::GenericDrawable>()->setModel(jop::Model(jop::ResourceManager::getNamedResource<jop::RectangleMesh>("rectangle", 100.0f), jop::ResourceManager::getExistingResource<jop::Material>(m_textureDown)));
+            }
+            else
+            {
+                getObject()->getComponent<jop::GenericDrawable>()->setModel(jop::Model(jop::ResourceManager::getNamedResource<jop::RectangleMesh>("rectangle", 100.0f), jop::ResourceManager::getExistingResource<jop::Material>(m_textureUp)));
+            }
+        }
+        m_pressed = pressed;
+    }
 
 	void mouseMove(const float mouseX, const float mouseY)
 	{
@@ -83,16 +101,16 @@ public:
 
         if (mousePos.x > pos.x - sizePerTwo.x && mousePos.y > pos.y - sizePerTwo.y && mousePos.x < pos.x + sizePerTwo.x && mousePos.y < pos.y + sizePerTwo.y)
 		{
-            if (!m_hover)
+            if (!m_hover && !m_pressed)
             {
-                getObject()->getComponent<jop::GenericDrawable>()->setModel(jop::Model(jop::ResourceManager::getNamedResource<jop::RectangleMesh>("rectangle", 100.0f), jop::ResourceManager::getExistingResource<jop::Material>(m_textureDown)));
+                getObject()->getComponent<jop::GenericDrawable>()->setModel(jop::Model(jop::ResourceManager::getNamedResource<jop::RectangleMesh>("rectangle", 100.0f), jop::ResourceManager::getExistingResource<jop::Material>(m_textureHover)));
             }
 
 			m_hover = true;
 		}
 		else
 		{
-            if (m_hover)
+            if (m_hover && !m_pressed)
             {
                 getObject()->getComponent<jop::GenericDrawable>()->setModel(jop::Model(jop::ResourceManager::getNamedResource<jop::RectangleMesh>("rectangle", 100.0f), jop::ResourceManager::getExistingResource<jop::Material>(m_textureUp)));
             }
@@ -102,6 +120,7 @@ public:
 private:
     std::string m_textureUp;
     std::string m_textureDown;
+    std::string m_textureHover;
 
     int m_messageType;
 	std::string m_message;

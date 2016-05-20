@@ -144,9 +144,10 @@ public:
         material2.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Bullet.png", true));
         
         //force field material
-        auto& ffMat = jop::ResourceManager::getEmptyResource<jop::Material>("ffMaterial", A::DefaultLighting | A::DiffuseAlpha);
+        auto& ffMat = jop::ResourceManager::getEmptyResource<jop::Material>("ffMaterial", A::DefaultLighting | A::DiffuseAlpha | A::Alpha);
         ffMat.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/FFTexture.png", true));
-        //ffMat.setMap(jop::Material::Map::Opacity, jop::ResourceManager::getResource<jop::Texture2D>("textures/FFOpacity.png", true));
+
+        //TODO: placement materials, red and green!
 
         //sword
         m_object = createChild("sword");
@@ -156,7 +157,7 @@ public:
         m_object->setRotation(0.0f, PI / 4.f, PI / 2.0f);
 
         //skybox
-        auto& cubeMap = jop::ResourceManager::getResource<jop::Cubemap>("Cubemap/right.png", "Cubemap/left.png", "Cubemap/top.png", "Cubemap/bottom.png", "Cubemap/front.png", "Cubemap/back.png", false);
+        auto& cubeMap = jop::ResourceManager::getResource<jop::Cubemap>("Cubemap/right.png", "Cubemap/left.png", "Cubemap/top.png", "Cubemap/bottom.png", "Cubemap/front.png", "Cubemap/back.png", true);
 		m_object->createComponent<jop::SkyBox>(getRenderer()).setMap(cubeMap);
 
         //light
@@ -176,9 +177,9 @@ public:
         cam2->setActive(true);
 
         //buttons
-        createButton(glm::vec2(480.0f, 000.0f), glm::vec2(-1.0f), "textures/button_bullet.png", "textures/button_bullet_down.png")->setMessage(0, "1");
-        createButton(glm::vec2(480.0f, -120.0f), glm::vec2(-1.0f), "textures/button_missile.png", "textures/button_missile_down.png")->setMessage(0, "2");;
-        createButton(glm::vec2(480.0f, -240.0f), glm::vec2(-1.0f), "textures/button_shield.png", "textures/button_shield_down.png")->setMessage(0, "3");;
+        createButton(glm::vec2(480.0f, 000.0f), glm::vec2(-1.0f), "textures/button_bullet.png", "textures/button_bullet_down.png", "textures/button_bullet_hover.png")->setMessage(0, "1");
+        createButton(glm::vec2(480.0f, -120.0f), glm::vec2(-1.0f), "textures/button_missile.png", "textures/button_missile_down.png", "textures/button_missile_hover.png")->setMessage(0, "2");;
+        createButton(glm::vec2(480.0f, -240.0f), glm::vec2(-1.0f), "textures/button_shield.png", "textures/button_shield_down.png", "textures/button_shield_hover.png")->setMessage(0, "3");;
 
         //degug display
         //auto debugObject = createChild("DEBUG");
@@ -280,10 +281,10 @@ private:
         return o;
     }
 
-    Button* createButton(glm::vec2 position, glm::vec2 size, std::string path1, std::string path2)
+    Button* createButton(glm::vec2 position, glm::vec2 size, std::string path1, std::string path2, std::string path3)
     {
         auto o = findChild("orthoCam")->createChild("button");
-        o->createComponent<Button>(path1, path2);
+        o->createComponent<Button>(path1, path2, path3);
         o->setPosition(glm::vec3(position.x, position.y, 1.0f)).setScale(glm::vec3(size.x, size.y, 1.0f));
         return o->getComponent<Button>();
     }
