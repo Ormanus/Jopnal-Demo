@@ -138,15 +138,15 @@ public:
 
         //cube material
         auto& material = jop::ResourceManager::getEmptyResource<jop::Material>("cubeMaterial", A::DefaultLighting);
-        material.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Pixel.png", true));
+		material.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Pixel.png", true, false));
 
         //ammo material
         auto& material2 = jop::ResourceManager::getEmptyResource<jop::Material>("bulletMaterial", A::DiffuseMap);
-        material2.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Bullet.png", true));
+		material2.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Bullet.png", true, false));
         
         //force field material
         auto& ffMat = jop::ResourceManager::getEmptyResource<jop::Material>("ffMaterial", A::DefaultLighting | A::DiffuseAlpha/* | A::Alpha*/);
-        ffMat.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/FFTexture.png", true));
+		ffMat.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/FFTexture.png", true, false));
 
         //TODO: placement materials, red and green!
 
@@ -158,7 +158,7 @@ public:
         m_object->setRotation(0.0f, PI / 4.f, PI / 2.0f);
 
         //skybox
-        auto& cubeMap = jop::ResourceManager::getResource<jop::Cubemap>("Cubemap/right.png", "Cubemap/left.png", "Cubemap/top.png", "Cubemap/bottom.png", "Cubemap/front.png", "Cubemap/back.png", true);
+		auto& cubeMap = jop::ResourceManager::getResource<jop::Cubemap>("Cubemap/right.png", "Cubemap/left.png", "Cubemap/top.png", "Cubemap/bottom.png", "Cubemap/front.png", "Cubemap/back.png", true, false);
 		m_object->createComponent<jop::SkyBox>(getRenderer()).setMap(cubeMap);
 
         //light

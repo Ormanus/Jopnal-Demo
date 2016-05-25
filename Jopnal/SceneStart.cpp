@@ -24,7 +24,7 @@ SceneStart::SceneStart()
 	cameraObject->setPosition(0.0f, 0.0f, 0.0f);
 	auto cam = cameraObject->createChild("view");
 	cam->setPosition(0.0f, 0.0f, 40.0f);
-	cam->createComponent<jop::Camera>(getRenderer(), jop::Camera::Projection::Perspective).setFieldOfView(PI / 2.0f);
+	cam->createComponent<jop::Camera>(getRenderer(), jop::Camera::Projection::Perspective);
 
 	//HUD
 	//cam
@@ -45,7 +45,7 @@ SceneStart::SceneStart()
 	//drawable1->setModel(jop::Model(jop::ResourceManager::getNamedResource<jop::RectangleMesh>("rectangle", 100.0f), material1));
 
 	//text
-	auto textObject = orthoCam->createChild("Text");
+	auto textObject = createChild("Text");
 	textObject->setPosition(0.f, -100.f, 10.f);
 	textObject->setScale(8000.0f, 8000.0f, 1.0f);
 	jop::Text& text = textObject->createComponent<jop::Text>(getRenderer());
@@ -57,7 +57,7 @@ SceneStart::SceneStart()
 
 	//cube material
 	auto& material = jop::ResourceManager::getEmptyResource<jop::Material>("cubeMaterial", jop::Material::Attribute::DefaultLighting);
-	material.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Pixel.png", true));
+	material.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Pixel.png", true, true));
 
 	//cube
 	auto o = createChild("cube");
