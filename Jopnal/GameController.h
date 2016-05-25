@@ -19,7 +19,7 @@ class Controller : public jop::Component
 {
 public:
 	Controller(jop::Object& objRef)
-		: jop::Component(objRef, 1)
+		: jop::Component(objRef, 0)
 	{};
 
 	virtual void init() = 0;

@@ -145,7 +145,7 @@ public:
         material2.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Bullet.png", true));
         
         //force field material
-        auto& ffMat = jop::ResourceManager::getEmptyResource<jop::Material>("ffMaterial", A::DefaultLighting | A::DiffuseAlpha | A::Alpha);
+        auto& ffMat = jop::ResourceManager::getEmptyResource<jop::Material>("ffMaterial", A::DefaultLighting | A::DiffuseAlpha/* | A::Alpha*/);
         ffMat.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/FFTexture.png", true));
 
         //TODO: placement materials, red and green!
