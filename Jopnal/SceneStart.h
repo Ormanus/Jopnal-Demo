@@ -84,10 +84,10 @@ private:
 
 		auto o = findChild("orthoCam")->createChild("button");
 		o->createComponent<Button>(path1, path2, path3, gc);
-		o->setPosition(glm::vec3(position.x, position.y, 1.0f)).setScale(glm::vec3(size.x, size.y, 1.0f));
+		o->setPosition(glm::vec3(position.x, position.y, 0.0f)).setScale(glm::vec3(size.x, size.y, 1.0f));
 		
 		auto o2 = o->createChild("Text");
-		o2->setScale(800.0f, 800.0f, 1.0f).setPosition(position.x - size.x / 2.f, position.y + size.y / 2.f, 0.1f);
+		o2->setScale(-800.0f, -800.0f, 1.0f).setPosition(position.x * 800.f + 32.f, position.y * 10.f, 1.f);
 		jop::Text& textComponent = o2->createComponent<jop::Text>(getRenderer());
 		textComponent.setFont(jop::ResourceManager::getResource<jop::Font, std::string, int>(std::string("fonts/comic.ttf"), 128));
 		textComponent.setRenderGroup(1);

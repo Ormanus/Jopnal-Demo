@@ -138,15 +138,15 @@ public:
 
         //cube material
         auto& material = jop::ResourceManager::getEmptyResource<jop::Material>("cubeMaterial", A::DefaultLighting);
-		material.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Pixel.png", true, false));
+		material.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Pixel.png", true));
 
         //ammo material
         auto& material2 = jop::ResourceManager::getEmptyResource<jop::Material>("bulletMaterial", A::DiffuseMap);
-		material2.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Bullet.png", true, false));
+		material2.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Bullet.png", true));
         
         //force field material
-        auto& ffMat = jop::ResourceManager::getEmptyResource<jop::Material>("ffMaterial", A::DefaultLighting | A::DiffuseAlpha/* | A::Alpha*/);
-		ffMat.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/FFTexture.png", true, false));
+        auto& ffMat = jop::ResourceManager::getEmptyResource<jop::Material>("ffMaterial", A::DefaultLighting | A::DiffuseAlpha | A::Alpha);
+		ffMat.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/FFTexture.png", true));
 
         //TODO: placement materials, red and green!
 
@@ -158,7 +158,7 @@ public:
         m_object->setRotation(0.0f, PI / 4.f, PI / 2.0f);
 
         //skybox
-		auto& cubeMap = jop::ResourceManager::getResource<jop::Cubemap>("Cubemap/right.png", "Cubemap/left.png", "Cubemap/top.png", "Cubemap/bottom.png", "Cubemap/front.png", "Cubemap/back.png", true, false);
+		auto& cubeMap = jop::ResourceManager::getResource<jop::Cubemap>("Cubemap/right.png", "Cubemap/left.png", "Cubemap/top.png", "Cubemap/bottom.png", "Cubemap/front.png", "Cubemap/back.png", true);
 		m_object->createComponent<jop::SkyBox>(getRenderer()).setMap(cubeMap);
 
         //light
@@ -183,13 +183,13 @@ public:
         createButton(glm::vec2(480.0f, -240.0f), glm::vec2(-1.0f), "textures/button_shield.png", "textures/button_shield_down.png", "textures/button_shield_hover.png")->setMessage(0, "3");;
 
         //degug display
-        auto debugObject = createChild("DEBUG");
-        debugObject->setScale(800.0f, 800.0f, 1.0f).setPosition(0.0f, 0.0f, 1.f);
-        jop::Text& text = debugObject->createComponent<jop::Text>(getRenderer());
-        text.setFont(jop::ResourceManager::getResource<jop::Font, std::string, int>(std::string("fonts/novem___.ttf"), 64));
-        text.setRenderGroup(1);
-        text.setString("Mouse Position: ");
-        text.setColor(jop::Color(0.0f, 0.9f, 0.0f, 1.0f));
+        //auto debugObject = createChild("DEBUG");
+        //debugObject->setScale(800.0f, 800.0f, 1.0f).setPosition(0.0f, 0.0f, 1.f);
+        //jop::Text& text = debugObject->createComponent<jop::Text>(getRenderer());
+        //text.setFont(jop::ResourceManager::getResource<jop::Font, std::string, int>(std::string("fonts/novem___.ttf"), 64));
+        //text.setRenderGroup(1);
+        //text.setString("Mouse Position: ");
+        //text.setColor(jop::Color(0.0f, 0.9f, 0.0f, 1.0f));
         
         //jop::Engine::sendMessage("[Co] setAction 2");
 

@@ -26,7 +26,7 @@ public:
 
 		auto terrain = o->createChild("terrain");
 		auto& material1 = jop::ResourceManager::getEmptyResource<jop::Material>("terrainMaterial", jop::Material::Attribute::Default);
-		material1.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Terrain.png", true, false));
+		material1.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>("textures/Terrain.png", true));
 
 		std::vector<jop::Vertex> vertices;
 

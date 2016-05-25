@@ -29,7 +29,7 @@ public:
 		auto drawable1 = o->getComponent<jop::GenericDrawable>();
 		drawable1->setRenderGroup(1);
         auto& material1 = jop::ResourceManager::getEmptyResource<jop::Material>(textureUp, jop::Material::Attribute::Default);
-		material1.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>(textureUp, true, false));
+		material1.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>(textureUp, true));
 		drawable1->setModel(jop::Model(jop::ResourceManager::getNamedResource<jop::RectangleMesh>("rectangle", 100.0f), material1));
 	}
 };
@@ -59,13 +59,13 @@ public:
     void initMaterials(std::string TextureUp, std::string TextureDown, std::string TextureHover)
     {
         auto& material1 = jop::ResourceManager::getEmptyResource<jop::Material>(TextureUp, jop::Material::Attribute::Default);
-		material1.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>(TextureUp, true, false));
+		material1.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>(TextureUp, true));
 
         auto& material2 = jop::ResourceManager::getEmptyResource<jop::Material>(TextureDown, jop::Material::Attribute::Default);
-		material2.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>(TextureDown, true, false));
+		material2.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>(TextureDown, true));
 
         auto& material3 = jop::ResourceManager::getEmptyResource<jop::Material>(TextureHover, jop::Material::Attribute::Default);
-		material3.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>(TextureHover, true, false));
+		material3.setMap(jop::Material::Map::Diffuse, jop::ResourceManager::getResource<jop::Texture2D>(TextureHover, true));
 
         m_textureDown = TextureDown;
         m_textureUp = TextureUp;
