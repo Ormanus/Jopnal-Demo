@@ -14,29 +14,46 @@ enum Action
 };
 
 //----- The Master Component -----
-class GameController : public jop::Component
+
+class Controller : public jop::Component
+{
+public:
+	Controller(jop::Object& objRef)
+		: jop::Component(objRef, 1)
+	{};
+
+	virtual void init() = 0;
+
+	virtual void mouseLeft() = 0;
+
+	virtual void action(const int a, const std::string& value) = 0;
+
+};
+
+//  ----  GAME CONTROLLER  ----
+class GameController : public Controller
 {
 public:
 	GameController(jop::Object& objRef)
-		: jop::Component(objRef, 1),
+		: Controller(objRef),
 		m_action(SELECT)
 	{
 		init();
 	};
 
 	GameController(const GameController& misRef, jop::Object& objRef)
-		: jop::Component(objRef, 1)
+		: Controller(objRef)
 	{
 		init();
 	};
 
 	JOP_GENERIC_COMPONENT_CLONE(GameController);
 
-    void init();
+    void init()override;
 
-    void mouseLeft();
+    void mouseLeft()override;
 
-    void action(const int a, const std::string& value);
+    void action(const int a, const std::string& value)override;
 
 	int getMoney()
 	{
@@ -72,6 +89,8 @@ public:
 
     void setLives(int amount);
     
+	bool isGameOver(){ return gameOver; };
+
 private:
 
     jop::Text& createText(std::string id, float x, float y, std::string text);
@@ -79,6 +98,8 @@ private:
 	//Interaction variables
 	Action m_action;
 	jop::WeakReference<jop::Object> m_selected;
+
+	bool gameOver;
 
 	//Game variables
 	int m_score;

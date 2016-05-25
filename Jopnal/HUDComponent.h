@@ -34,10 +34,12 @@ public:
 	}
 };
 
+class Controller;
+
 class Button : public UIComponent
 {
 public:
-    Button(jop::Object& objRef, const std::string textureUp, const std::string textureDown, const std::string textureHover)
+    Button(jop::Object& objRef, const std::string textureUp, const std::string textureDown, const std::string textureHover, Controller* controller)
 		: UIComponent(objRef, textureUp)
 	{
 		m_hover = false;
@@ -45,6 +47,7 @@ public:
         m_message = "";
         size = glm::vec2(100.f);
         initMaterials(textureUp, textureDown, textureHover);
+		m_controller = controller;
 	}
 
     void setMessage(int i, std::string m)
@@ -94,7 +97,7 @@ public:
         pos.y = -pos.y;
         pos += glm::vec3(windowSize / 2.0f, 0.0f);
         glm::vec3 scale = getObject()->getGlobalScale();
-        glm::vec2 sizePerTwo = size / 2.0f;
+        glm::vec2 sizePerTwo = (size / 2.0f) * glm::vec2(scale.x, scale.y);
         glm::vec2 mousePos = jop::Engine::getSubsystem<jop::Window>()->getEventHandler()->getCursorPosition();
 
         mousePos = glm::vec2(mouseX, mouseY);
@@ -121,6 +124,8 @@ private:
     std::string m_textureUp;
     std::string m_textureDown;
     std::string m_textureHover;
+
+	Controller* m_controller;
 
     int m_messageType;
 	std::string m_message;

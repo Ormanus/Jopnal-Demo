@@ -8,7 +8,7 @@ int main(int c, char** v)
 {
     JOP_ENGINE_INIT("NO_NAME", c, v);
 
-    jop::Engine::createScene<SceneGame>();
+    jop::Engine::createScene<SceneStart>();
 
 	return JOP_MAIN_LOOP;
 }

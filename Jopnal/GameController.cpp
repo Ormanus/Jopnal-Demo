@@ -1,5 +1,7 @@
 #include "GameController.h"
+#include "MenuController.h"
 #include "SceneStart.h"
+#include "SceneGame.h"
 
 void GameController::init()
 {
@@ -15,6 +17,8 @@ void GameController::init()
     setMoney(500);
     setScore(0);
     setLives(10);
+
+	gameOver = false;
 }
 
 void GameController::action(const int type, const std::string& value)
@@ -60,7 +64,7 @@ void GameController::setLives(int amount)
     if (m_lives < 0)
     {
         //game over!
-        
+		gameOver = true;
     }
 }
 

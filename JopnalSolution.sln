@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Jopnal", "Jopnal\Jopnal.vcxproj", "{9142D34F-FCC5-429B-8121-A302B00E6D27}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -10,11 +10,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Jopnal", "Jopnal\Jopnal.vcx
 		{05E2B2F8-17E8-4A01-8396-27CE1B84720E} = {05E2B2F8-17E8-4A01-8396-27CE1B84720E}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Jopnal Engine", "..\..\..\Github\Jopnal\project\Jopnal Engine.vcxproj", "{05E2B2F8-17E8-4A01-8396-27CE1B84720E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Jopnal Engine", "..\Jopnal\project\Jopnal Engine.vcxproj", "{05E2B2F8-17E8-4A01-8396-27CE1B84720E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Jopnal Resources", "..\..\..\Github\Jopnal\project\Jopnal Resources.vcxproj", "{071B6DBF-2422-42C5-AA5B-A92129AF838A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Jopnal Resources", "..\Jopnal\project\Jopnal Resources.vcxproj", "{071B6DBF-2422-42C5-AA5B-A92129AF838A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Jopnal Main", "..\..\..\Github\Jopnal\project\Jopnal Main.vcxproj", "{ECA93DD8-5516-4C66-A10A-A1D0D034B929}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Jopnal Main", "..\Jopnal\project\Jopnal Main.vcxproj", "{ECA93DD8-5516-4C66-A10A-A1D0D034B929}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

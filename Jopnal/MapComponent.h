@@ -109,7 +109,7 @@ public:
 
 private:
 	std::vector<glm::vec3> m_path;
-	const int m_numWaypoints = 16;
+	const int m_numWaypoints = 2;
 };
 
 

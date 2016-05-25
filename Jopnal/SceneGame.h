@@ -105,6 +105,7 @@ private:
     jop::WeakReference<jop::Object> m_text;
     float m_time;
     float m_enemyTimer;
+	float m_enemySize;
     //glm::vec3* m_path;
     //const int m_numWaypoints = 16;
 public:
@@ -182,15 +183,17 @@ public:
         createButton(glm::vec2(480.0f, -240.0f), glm::vec2(-1.0f), "textures/button_shield.png", "textures/button_shield_down.png", "textures/button_shield_hover.png")->setMessage(0, "3");;
 
         //degug display
-        //auto debugObject = createChild("DEBUG");
-        //debugObject->setScale(800.0f, 800.0f, 1.0f);
-        //jop::Text& text = debugObject->createComponent<jop::Text>(getRenderer());
-        //text.setFont(jop::ResourceManager::getResource<jop::Font, std::string, int>(std::string("fonts/novem___.ttf"), 64));
-        //text.setRenderGroup(1);
-        //text.setString("Mouse Position: ");
-        //text.setColor(jop::Color(0.0f, 0.9f, 0.0f, 1.0f));
+        auto debugObject = createChild("DEBUG");
+        debugObject->setScale(800.0f, 800.0f, 1.0f).setPosition(0.0f, 0.0f, 1.f);
+        jop::Text& text = debugObject->createComponent<jop::Text>(getRenderer());
+        text.setFont(jop::ResourceManager::getResource<jop::Font, std::string, int>(std::string("fonts/novem___.ttf"), 64));
+        text.setRenderGroup(1);
+        text.setString("Mouse Position: ");
+        text.setColor(jop::Color(0.0f, 0.9f, 0.0f, 1.0f));
         
         //jop::Engine::sendMessage("[Co] setAction 2");
+
+		m_enemySize = 1.0f;
     }
 
     void preUpdate(const float dt) override
@@ -246,9 +249,9 @@ public:
         }
 
         m_enemyTimer += dt;
-        if (m_enemyTimer > 1.0f)
+        if (m_enemyTimer > m_enemySize)
         {
-            m_enemyTimer -= 1.0f;
+			m_enemyTimer -= m_enemySize;
 
             float t = jop::Engine::getTotalTime();
 
@@ -258,13 +261,7 @@ public:
         }
     }
 
-    void postUpdate(const float dt)override
-    {
-        if (m_gameover)
-        {
-            jop::Engine::createScene<SceneStart>();
-        }
-    }
+	void postUpdate(const float dt)override;
 
     void gameOver()
     {
@@ -277,14 +274,17 @@ private:
     {
         //TODO: switch(type) & different enemy types
         auto o = createChild("enemy");
-        o->createComponent<Enemy>();
+        o->createComponent<Enemy>().setHealth(m_enemySize * 100.f);
+		m_enemySize += 0.1f;
         return o;
     }
 
     Button* createButton(glm::vec2 position, glm::vec2 size, std::string path1, std::string path2, std::string path3)
     {
+		auto gc = findChild("GC")->getComponent<GameController>();
+
         auto o = findChild("orthoCam")->createChild("button");
-        o->createComponent<Button>(path1, path2, path3);
+        o->createComponent<Button>(path1, path2, path3, gc);
         o->setPosition(glm::vec3(position.x, position.y, 1.0f)).setScale(glm::vec3(size.x, size.y, 1.0f));
         return o->getComponent<Button>();
     }

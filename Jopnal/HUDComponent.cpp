@@ -5,8 +5,8 @@ bool Button::click()
 {
     if (m_hover && m_message != "")
     {
-        getObject()->getScene().findChild("GC")->getComponent<GameController>()->action(0, m_message);
-        setPressed(true);
+		setPressed(true);
+        m_controller->action(m_messageType, m_message);
     }
     return m_hover;
 }

@@ -11,7 +11,7 @@ void Enemy::init()
     drawable.setModel(jop::Model(jop::Mesh::getDefault(), jop::ResourceManager::getExistingResource<jop::Material>("cubeMaterial")));
 
     setHealth(100.f);
-    m_speed = 5.f;
+    m_speed = 8.f;
     m_currentWaypoint = 0;
 
     m_reward = 10;
@@ -69,6 +69,7 @@ void Enemy::setHealth(float hp)
     if (m_health < 0.f)
     {
         getObject()->getScene().findChild("GC")->getComponent<GameController>()->addMoney(getReward());
+		getObject()->getScene().findChild("GC")->getComponent<GameController>()->addScore(getReward());
         getObject()->removeSelf();
     }
 

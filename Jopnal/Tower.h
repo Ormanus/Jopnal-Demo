@@ -296,12 +296,12 @@ public:
         //add ff model
         auto o = getObject();
         auto& drawable = o->createComponent<ShieldDrawable>(o->getScene().getRenderer());
-        drawable.setModel(jop::Model(jop::ResourceManager::getNamedResource<jop::SphereMesh>("ff", 10.f, 32.f, 32.f), jop::ResourceManager::getExistingResource<jop::Material>("ffMaterial")));
+        drawable.setModel(jop::Model(jop::ResourceManager::getNamedResource<jop::SphereMesh>("ff", 16.f, 32, 32), jop::ResourceManager::getExistingResource<jop::Material>("ffMaterial")));
 
         m_timer = 0.0f;
         m_rof = 0.1f;
         m_targetingType = 0;
-        m_range = 10.f;
+        m_range = 16.f;
     }
 
     void act()override
